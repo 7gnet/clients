@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>桥牌工作 - 管理中心</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .header h1 {
+            color: white;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        .header p {
+            color: rgba(255,255,255,0.9);
+            font-size: 1.1em;
+        }
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .card-title {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .card-title .icon {
+            font-size: 1.3em;
+        }
+        .file-list {
+            list-style: none;
+        }
+        .file-list li {
+            margin-bottom: 12px;
+        }
+        .file-list a {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            text-decoration: none;
+            color: #333;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+        .file-list a:hover {
+            background: #e9ecef;
+            border-left-color: #667eea;
+            transform: translateX(5px);
+        }
+        .file-list .file-icon {
+            margin-right: 12px;
+            font-size: 1.2em;
+        }
+        .file-list .file-name {
+            flex: 1;
+            font-weight: 500;
+        }
+        .file-list .file-date {
+            color: #888;
+            font-size: 0.9em;
+        }
+        .back-link {
+            text-align: center;
+            margin-top: 30px;
+        }
+        .back-link a {
+            display: inline-block;
+            padding: 12px 30px;
+            background: white;
+            color: #667eea;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .back-link a:hover {
+            background: rgba(255,255,255,0.9);
+            transform: scale(1.05);
+        }
+        .empty-tip {
+            color: #888;
+            text-align: center;
+            padding: 30px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🃏 桥牌工作</h1>
+            <p>会议纪要 · 教师信息 · 项目管理</p>
+        </div>
+
+        <div class="card">
+            <div class="card-title">
+                <span class="icon">📝</span>
+                <span>会议纪要</span>
+            </div>
+            <ul class="file-list">
+                <li>
+                    <a href="会议纪要/教培合作洽谈会议大纲_2026-03-26.md">
+                        <span class="file-icon">📄</span>
+                        <span class="file-name">教培合作洽谈会议大纲</span>
+                        <span class="file-date">2026-03-26</span>
+                    </a>
+                </li>
+                <!-- 后续会议纪要继续添加 -->
+            </ul>
+        </div>
+
+        <div class="card">
+            <div class="card-title">
+                <span class="icon">👥</span>
+                <span>教师信息</span>
+            </div>
+            <ul class="file-list">
+                <li>
+                    <a href="教师信息/教师信息.html">
+                        <span class="file-icon">👤</span>
+                        <span class="file-name">合作教师信息表</span>
+                        <span class="file-date">查看详情</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="back-link">
+            <a href="../01-schedule.html">← 返回行程管理</a>
+        </div>
+    </div>
+</body>
+</html>
