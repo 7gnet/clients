@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>桥牌会议记录</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+        .nav a {
+            padding: 10px 20px;
+            background: #fff;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #666;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .nav a.active {
+            background: #4CAF50;
+            color: white;
+        }
+        .search-box {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .search-box input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .meeting-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .meeting-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #4CAF50;
+        }
+        .meeting-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+        .meeting-date {
+            color: #666;
+            font-size: 14px;
+        }
+        .meeting-content {
+            color: #555;
+            line-height: 1.8;
+        }
+        .meeting-content h3 {
+            color: #4CAF50;
+            margin: 15px 0 10px 0;
+            font-size: 16px;
+        }
+        .meeting-content ul {
+            margin-left: 20px;
+            margin-bottom: 10px;
+        }
+        .meeting-content li {
+            margin-bottom: 5px;
+        }
+        .tag {
+            display: inline-block;
+            padding: 3px 10px;
+            background: #e3f2fd;
+            color: #1976d2;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-right: 5px;
+        }
+        .tag.important {
+            background: #ffebee;
+            color: #c62828;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🃏 桥牌会议记录</h1>
+        
+        <div class="nav">
+            <a href="桥牌会议记录.html" class="active">会议记录</a>
+            <a href="教师信息.html">教师信息</a>
+        </div>
+
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="搜索会议主题、内容..." onkeyup="searchMeetings()">
+        </div>
+
+        <div id="meetingList">
+            <!-- 浙江省青少年桥牌俱乐部超级联赛 -->
+            <div class="meeting-card" data-keywords="浙江 青少年 超级联赛 杭州 中玺">
+                <div class="meeting-header">
+                    <div>
+                        <span class="meeting-title">浙江省青少年桥牌俱乐部超级联赛项目对接</span>
+                        <span class="tag important">重要</span>
+                        <span class="tag">中玺平台</span>
+                    </div>
+                    <div class="meeting-date">2025-03-25</div>
+                </div>
+                <div class="meeting-content">
+                    <h3>项目背景</h3>
+                    <ul>
+                        <li><strong>合作方：</strong>体委、教委联合合作</li>
+                        <li><strong>覆盖范围：</strong>11个地级市</li>
+                        <li><strong>影响青少年：</strong>2500-3000人</li>
+                        <li><strong>预估参赛人数：</strong>1000位左右</li>
+                    </ul>
+
+                    <h3>比赛分组</h3>
+                    <ul>
+                        <li><strong>幼儿版/低幼儿童版：</strong>新睿平台</li>
+                        <li><strong>少儿版：</strong>中玺桥牌（1000人以上）</li>
+                    </ul>
+
+                    <h3>时间安排</h3>
+                    <ul>
+                        <li><strong>3月27日 20:00：</strong>线上规程说明会</li>
+                        <li><strong>5月1日：</strong>海选赛正式启动</li>
+                    </ul>
+
+                    <h3>中玺平台开发需求</h3>
+                    <ul>
+                        <li>少于5人可创建比赛</li>
+                        <li>迷你桥牌全场无局设定</li>
+                        <li>完赛弹窗提示</li>
+                        <li>单独创立"浙江省青少年桥牌俱乐部超级联赛"专区</li>
+                    </ul>
+
+                    <h3>开发计划</h3>
+                    <ul>
+                        <li><strong>开发时间：</strong>6月左右开始</li>
+                        <li><strong>目标：</strong>今年内完成开发</li>
+                        <li><strong>上线：</strong>明年正式使用</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 示例：更多会议记录可以在这里添加 -->
+            <div class="meeting-card" data-keywords="杭州 活动 负责人">
+                <div class="meeting-header">
+                    <div>
+                        <span class="meeting-title">杭州活动负责人对接会</span>
+                        <span class="tag">杭州</span>
+                    </div>
+                    <div class="meeting-date">2025-03-25</div>
+                </div>
+                <div class="meeting-content">
+                    <p>讨论杭州比赛事宜，已记录相关安排。</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        function searchMeetings() {
+            const input = document.getElementById('searchInput').value.toLowerCase();
+            const cards = document.querySelectorAll('.meeting-card');
+            
+            cards.forEach(card => {
+                const keywords = card.getAttribute('data-keywords').toLowerCase();
+                const title = card.querySelector('.meeting-title').textContent.toLowerCase();
+                const content = card.querySelector('.meeting-content').textContent.toLowerCase();
+                
+                if (keywords.includes(input) || title.includes(input) || content.includes(input)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

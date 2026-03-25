@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>行程管理</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f0f2f7; color: #333; min-height: 100vh; }
+
+  /* 顶部 */
+  .header {
+    background: linear-gradient(135deg, #1565c0, #283593);
+    color: white; padding: 20px 30px;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+  }
+  .header h1 { font-size: 20px; font-weight: 600; }
+  .header .subtitle { font-size: 13px; opacity: 0.8; margin-top: 4px; }
+  .header-right { display: flex; gap: 10px; }
+  .stat-badge { background: rgba(255,255,255,0.15); border-radius: 20px; padding: 6px 16px; font-size: 12px; text-align: center; }
+  .stat-badge .num { font-size: 18px; font-weight: 700; display: block; }
+
+  /* 今日摘要 */
+  .today-bar {
+    background: white; padding: 12px 30px;
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    border-bottom: 1px solid #e8e8e8;
+    font-size: 13px; color: #555;
+  }
+  .today-bar .today-label { font-weight: 700; color: #1565c0; font-size: 14px; }
+  .today-item { display: flex; align-items: center; gap: 6px; }
+
+  /* 搜索栏 */
+  .search-bar {
+    background: white; padding: 10px 30px;
+    border-bottom: 1px solid #e8e8e8;
+  }
+  .search-input-wrap {
+    display: flex; align-items: center; gap: 8px;
+    background: #f5f7fb; border-radius: 20px; padding: 7px 16px;
+    border: 1.5px solid #e8e8e8; transition: border-color 0.2s;
+  }
+  .search-input-wrap:focus-within { border-color: #1565c0; }
+  .search-input-wrap input {
+    border: none; background: transparent; outline: none;
+    font-size: 13px; color: #333; flex: 1; min-width: 0;
+  }
+  .search-input-wrap input::placeholder { color: #aaa; }
+  .search-clear { cursor: pointer; color: #bbb; font-size: 16px; display: none; }
+  .search-clear.show { display: block; }
+
+  /* 筛选栏 */
+  .filter-bar {
+    background: white; padding: 10px 30px;
+    display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+    border-bottom: 1px solid #e8e8e8; box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  }
+  .filter-group { display: flex; gap: 6px; align-items: center; }
+  .filter-divider { width: 1px; height: 24px; background: #e0e0e0; margin: 0 4px; }
+  .filter-btn {
+    padding: 5px 14px; border-radius: 16px; border: 1.5px solid #ddd;
+    background: white; cursor: pointer; font-size: 12px; transition: all 0.2s; color: #555;
+  }
+  .filter-btn:hover { border-color: #1565c0; color: #1565c0; }
+  .filter-btn.active { background: #1565c0; color: white; border-color: #1565c0; }
+  .filter-btn.active-bridge { background: #e65100; color: white; border-color: #e65100; }
+  .filter-btn.active-insurance { background: #1565c0; color: white; border-color: #1565c0; }
+  .filter-btn.active-daily { background: #2e7d32; color: white; border-color: #2e7d32; }
+
+  /* 布局：主区域 + 侧边月份导航 */
+  .layout { display: flex; gap: 0; max-width: 980px; margin: 0 auto; padding: 20px 30px; align-items: flex-start; }
+
+  /* 月份导航侧边栏 */
+  .month-nav {
+    width: 100px; flex-shrink: 0; position: sticky; top: 16px;
+    background: white; border-radius: 12px; padding: 14px 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+    margin-right: 20px;
+  }
+  .month-nav-title { font-size: 11px; color: #aaa; text-align: center; margin-bottom: 10px; font-weight: 600; letter-spacing: 0.5px; }
+  .month-nav-item {
+    padding: 6px 8px; border-radius: 8px; cursor: pointer;
+    font-size: 12px; color: #555; text-align: center;
+    transition: all 0.15s; margin-bottom: 2px;
+  }
+  .month-nav-item:hover { background: #e3f0ff; color: #1565c0; }
+  .month-nav-item.active { background: #1565c0; color: white; font-weight: 600; }
+  .month-nav-item .month-count { font-size: 10px; opacity: 0.7; display: block; }
+
+  /* 主时间轴 */
+  .timeline-wrap { flex: 1; min-width: 0; }
+
+  /* 月份分组块 */
+  .month-group { margin-bottom: 20px; }
+  .month-group-header {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 12px; cursor: pointer; user-select: none;
+  }
+  .month-group-header:hover .month-group-title { color: #1565c0; }
+  .month-group-title {
+    font-size: 15px; font-weight: 700; color: #333; transition: color 0.15s;
+  }
+  .month-group-title.past { color: #aaa; }
+  .month-group-badge {
+    font-size: 11px; background: #f0f2f7; color: #888;
+    padding: 2px 8px; border-radius: 10px;
+  }
+  .month-group-line { flex: 1; height: 1px; background: #e8e8e8; }
+  .month-collapse-icon { font-size: 12px; color: #bbb; transition: transform 0.2s; }
+  .month-collapse-icon.collapsed { transform: rotate(-90deg); }
+
+  .month-group-body { transition: none; }
+  .month-group-body.collapsed { display: none; }
+
+  /* 时间轴 */
+  .timeline { position: relative; }
+  .day-group { margin-bottom: 8px; }
+  .day-header {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 10px; margin-top: 16px;
+  }
+  .day-label {
+    font-size: 13px; font-weight: 700; color: #555;
+    white-space: nowrap;
+  }
+  .day-label.today { color: #1565c0; font-size: 14px; }
+  .day-label.past { color: #bbb; }
+  .day-dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: #90caf9; flex-shrink: 0;
+  }
+  .day-dot.today { background: #1565c0; box-shadow: 0 0 0 3px #e3f0ff; }
+  .day-dot.past { background: #ddd; }
+  .day-dot.future { background: #90caf9; }
+  .day-line { flex: 1; height: 1px; background: #e8e8e8; }
+
+  /* 行程卡片 */
+  .schedule-card {
+    background: white; border-radius: 10px; padding: 14px 16px;
+    margin-bottom: 8px; margin-left: 22px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+    border-left: 4px solid;
+    display: flex; align-items: flex-start; gap: 14px;
+    cursor: pointer; transition: all 0.15s;
+    position: relative;
+  }
+  .schedule-card:hover { transform: translateX(4px); box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+  .schedule-card.bridge { border-left-color: #e65100; }
+  .schedule-card.insurance { border-left-color: #1565c0; }
+  .schedule-card.daily { border-left-color: #2e7d32; }
+  .schedule-card.done { opacity: 0.5; }
+  .schedule-card.cancelled { opacity: 0.35; text-decoration: line-through; }
+
+  /* 搜索高亮 */
+  .highlight { background: #fff3e0; color: #e65100; border-radius: 3px; padding: 0 2px; }
+
+  .card-time { font-size: 13px; font-weight: 700; color: #555; min-width: 50px; padding-top: 2px; }
+  .card-body { flex: 1; }
+  .card-top { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; flex-wrap: wrap; }
+  .type-badge {
+    font-size: 11px; padding: 2px 8px; border-radius: 10px;
+    font-weight: 600; white-space: nowrap;
+  }
+  .type-bridge { background: #fff3e0; color: #e65100; }
+  .type-insurance { background: #e3f0ff; color: #1565c0; }
+  .type-daily { background: #e8f5e9; color: #2e7d32; }
+  .card-title { font-size: 14px; font-weight: 600; color: #333; }
+  .card-meta { font-size: 12px; color: #888; display: flex; gap: 10px; flex-wrap: wrap; }
+  .card-note { font-size: 12px; color: #999; margin-top: 4px; background: #fafafa; padding: 4px 8px; border-radius: 4px; }
+
+  .card-status {
+    font-size: 11px; padding: 3px 10px; border-radius: 10px;
+    font-weight: 600; white-space: nowrap; flex-shrink: 0; align-self: flex-start;
+  }
+  .status-todo { background: #e3f0ff; color: #1565c0; }
+  .status-done { background: #e8f5e9; color: #2e7d32; }
+  .status-cancelled { background: #f5f5f5; color: #999; }
+  .status-today { background: #fff3e0; color: #e65100; }
+
+  /* 弹窗 */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45); z-index: 100;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: white; border-radius: 16px; padding: 26px;
+    width: 460px; max-width: 95vw; max-height: 90vh; overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .modal-title { font-size: 16px; font-weight: 700; }
+  .modal-close { cursor: pointer; font-size: 22px; color: #999; }
+  .modal-close:hover { color: #333; }
+
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+  .detail-item .dl { font-size: 11px; color: #aaa; margin-bottom: 3px; }
+  .detail-item .dv { font-size: 14px; color: #333; font-weight: 500; }
+
+  .modal-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; padding-top: 16px; border-top: 1px solid #f0f0f0; }
+  .btn { padding: 8px 18px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s; }
+  .btn-done { background: #e8f5e9; color: #2e7d32; }
+  .btn-done:hover { background: #43a047; color: white; }
+  .btn-cancel-ev { background: #fce4ec; color: #c62828; }
+  .btn-cancel-ev:hover { background: #c62828; color: white; }
+  .btn-undo { background: #f5f5f5; color: #888; }
+  .btn-undo:hover { background: #ddd; color: #333; }
+
+  .empty-hint { text-align: center; color: #bbb; font-size: 15px; padding: 60px 0; }
+
+  /* 搜索结果提示 */
+  .search-result-tip {
+    font-size: 13px; color: #888; padding: 6px 0 10px;
+    display: none;
+  }
+  .search-result-tip.show { display: block; }
+
+  .toast {
+    position: fixed; bottom: 30px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #333; color: white; padding: 10px 24px;
+    border-radius: 20px; font-size: 14px; opacity: 0;
+    transition: all 0.3s; z-index: 999; pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 700px) {
+    .layout { padding: 14px 12px; flex-direction: column; }
+    .month-nav { width: 100%; position: static; margin-right: 0; margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 10px 14px; }
+    .month-nav-title { width: 100%; }
+    .month-nav-item { padding: 4px 10px; }
+    .header { padding: 16px; }
+    .header-right { display: none; }
+    .filter-bar, .search-bar { padding: 10px 16px; }
+    .today-bar { padding: 10px 16px; }
+    .schedule-card { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>🗓️ 行程管理</h1>
+    <div class="subtitle">桥牌 · 保险 · 日常 · 统一规划</div>
+  </div>
+  <div class="header-right">
+    <div class="stat-badge"><span class="num" id="stat-upcoming">0</span>待办</div>
+    <div class="stat-badge"><span class="num" id="stat-today">0</span>今日</div>
+    <div class="stat-badge"><span class="num" id="stat-done">0</span>已完成</div>
+  </div>
+</div>
+
+<!-- 今日摘要 -->
+<div class="today-bar" id="today-bar">
+  <span class="today-label" id="today-date-label">今日</span>
+  <span id="today-summary" style="color:#aaa">今日暂无行程</span>
+</div>
+
+<!-- 搜索栏 -->
+<div class="search-bar">
+  <div class="search-input-wrap">
+    <span style="color:#bbb;font-size:15px">🔍</span>
+    <input type="text" id="search-input" placeholder="搜索行程标题、地点、备注…" oninput="onSearch(this.value)">
+    <span class="search-clear" id="search-clear" onclick="clearSearch()">×</span>
+  </div>
+</div>
+
+<!-- 筛选栏 -->
+<div class="filter-bar">
+  <div class="filter-group">
+    <button class="filter-btn active" id="view-upcoming" onclick="setView('upcoming',this)">📅 未来</button>
+    <button class="filter-btn" id="view-history" onclick="setView('history',this)">📂 历史</button>
+    <button class="filter-btn" id="view-all" onclick="setView('all',this)">全部</button>
+  </div>
+  <div class="filter-divider"></div>
+  <div class="filter-group">
+    <button class="filter-btn active" id="type-all" onclick="setType('all',this)">全部类型</button>
+    <button class="filter-btn" id="type-bridge" onclick="setType('bridge',this)">🃏 桥牌</button>
+    <button class="filter-btn" id="type-insurance" onclick="setType('insurance',this)">🏦 保险</button>
+    <button class="filter-btn" id="type-daily" onclick="setType('daily',this)">📌 日常</button>
+  </div>
+</div>
+
+<!-- 主布局 -->
+<div class="layout">
+  <!-- 月份快速跳转侧边栏 -->
+  <div class="month-nav" id="month-nav">
+    <div class="month-nav-title">月份跳转</div>
+    <!-- 动态生成 -->
+  </div>
+
+  <!-- 时间轴主区域 -->
+  <div class="timeline-wrap">
+    <div class="search-result-tip" id="search-result-tip"></div>
+    <div id="timeline-container"></div>
+    <div class="empty-hint" id="empty-hint" style="display:none">暂无行程 🗓️</div>
+  </div>
+</div>
+
+<!-- 详情弹窗 -->
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="modal" id="modal-content"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== 行程数据 =====
+const schedules = [
+  {
+    id: 1,
+    datetime: "2025-11-17 14:00",
+    type: "insurance",
+    title: "拜访客户尤培林",
+    location: "上海·罗泾镇保红家园",
+    note: "首次上门拜访，了解需求，重点标记客户",
+    status: "done",
+    reminder: "both"
+  },
+  {
+    id: 2,
+    datetime: "2026-03-25 10:00",
+    type: "bridge",
+    title: "杭州活动负责人对接会",
+    location: "杭州",
+    note: "讨论杭州比赛事宜",
+    status: "todo",
+    reminder: "both"
+  },
+  {
+    id: 10,
+    datetime: "2026-03-26 13:30",
+    type: "education",
+    title: "教培渠道合作洽谈",
+    location: "中兴路地铁站",
+    note: "尚老师 + 徐老师，探讨小红书/视频号短视频教培项目",
+    status: "todo",
+    reminder: "both",
+    mode: "offline",
+    attendance: "required"
+  },
+  {
+    id: 4,
+    datetime: "2026-03-28 09:00",
+    type: "daily",
+    title: "国际象棋比赛",
+    location: "",
+    note: "姜清心，爸爸送，无需本人出席",
+    status: "todo",
+    reminder: "1d",
+    attendance: "none"
+  },
+  {
+    id: 3,
+    datetime: "2026-03-29 13:00",
+    type: "insurance",
+    title: "张雪峰升学规划系列主题讲座",
+    location: "",
+    note: "",
+    status: "todo",
+    reminder: "1d"
+  },
+  {
+    id: 5,
+    datetime: "2026-03-27 09:00",
+    type: "bridge",
+    title: "周六桥牌比赛提醒",
+    location: "",
+    note: "明天有桥牌比赛，记得准备",
+    status: "todo",
+    reminder: "both"
+  },
+  {
+    id: 6,
+    datetime: "2026-03-27 14:00",
+    type: "daily",
+    title: "赶火车去安徽合肥",
+    location: "上海火车站/虹桥站",
+    note: "下午火车出发去合肥，注意提前到站",
+    status: "todo",
+    reminder: "2h"
+  },
+  {
+    id: 20,
+    datetime: "2026-03-27 20:00",
+    type: "bridge",
+    title: "杭州桥牌比赛规程说明会",
+    location: "线上",
+    note: "向教练和平台负责方说明比赛规程，中玺平台创立比赛功能",
+    status: "todo",
+    reminder: "both",
+    mode: "online",
+    attendance: "required"
+  },
+  {
+    id: 7,
+    datetime: "2026-03-28 09:00",
+    type: "bridge",
+    title: "周六桥牌比赛",
+    location: "安徽合肥",
+    note: "线上比赛，不限所在地，中午回上海",
+    status: "todo",
+    reminder: "both",
+    mode: "online"
+  },
+  {
+    id: 8,
+    datetime: "2026-03-28 16:00",
+    type: "bridge",
+    title: "上传牌库",
+    location: "",
+    note: "给有需要的牌友上传牌库",
+    status: "todo",
+    reminder: "2h"
+  },
+  {
+    id: 9,
+    datetime: "2026-04-09 13:00",
+    type: "insurance",
+    title: "高端下午茶局",
+    location: "",
+    note: "线下活动，预计13:00-16:00",
+    status: "todo",
+    reminder: "both",
+    mode: "offline",
+    attendance: "required"
+  },
+  {
+    id: 18,
+    datetime: "2026-04-10 09:00",
+    type: "daily",
+    title: "姜清心象棋活动",
+    location: "",
+    note: "姜清心参加象棋活动",
+    status: "todo",
+    reminder: "1d",
+    mode: "offline",
+    attendance: "none"
+  },
+  {
+    id: 19,
+    datetime: "2026-04-11 09:00",
+    type: "daily",
+    title: "姜清心象棋比赛",
+    location: "",
+    note: "姜清心参加象棋比赛（上午）",
+    status: "todo",
+    reminder: "1d",
+    mode: "offline",
+    attendance: "none"
+  },
+  {
+    id: 11,
+    datetime: "2026-04-04 09:00",
+    type: "daily",
+    title: "清明扫墓",
+    location: "航头、南翔",
+    note: "与母亲一起扫墓",
+    status: "todo",
+    reminder: "1d",
+    mode: "offline",
+    attendance: "required"
+  },
+  {
+    id: 13,
+    datetime: "2026-04-01 09:00",
+    type: "bridge",
+    title: "确认4/4桥牌比赛参赛安排",
+    location: "",
+    note: "4月4日线上桥牌比赛与部分队伍线下比赛时间冲突，需与教练确认是否参赛",
+    status: "todo",
+    reminder: "both",
+    mode: "offline",
+    attendance: "none"
+  },
+  {
+    id: 22,
+    datetime: "2026-04-03 13:00",
+    type: "daily",
+    title: "高尔夫球包厢",
+    location: "浦东",
+    note: "高尔夫活动，13:00-17:00",
+    status: "todo",
+    reminder: "both",
+    mode: "offline",
+    attendance: "required"
+  },
+  {
+    id: 14,
+    datetime: "2026-04-04 09:00",
+    type: "bridge",
+    title: "桥牌比赛（线上/线下冲突日）",
+    location: "",
+    note: "线上比赛与部分队伍线下比赛冲突，待确认",
+    status: "todo",
+    reminder: "both",
+    mode: "online",
+    attendance: "required"
+  },
+  {
+    id: 12,
+    datetime: "2026-04-05 09:00",
+    type: "daily",
+    title: "清明扫墓（正清明）",
+    location: "宝山",
+    note: "正清明（4月5日）扫墓",
+    status: "todo",
+    reminder: "1d",
+    mode: "offline",
+    attendance: "required"
+  },
+  {
+    id: 23,
+    datetime: "2026-03-30 09:00",
+    type: "daily",
+    title: "提醒：约TT",
+    location: "",
+    note: "记得约TT",
+    status: "todo",
+    reminder: "both",
+    mode: "offline",
+    attendance: "required"
+  },
+  {
+    id: 15,
+    datetime: "2026-07-01 09:00",
+    type: "daily",
+    title: "云南出行（暂定）",
+    location: "云南",
+    note: "7月去云南，具体日期待定，需提前订机票酒店",
+    status: "todo",
+    reminder: "both",
+    mode: "offline",
+    attendance: "required"
+  },
+  {
+    id: 16,
+    datetime: "2026-05-15 09:00",
+    type: "daily",
+    title: "预订云南机票",
+    location: "",
+    note: "提前4-6周预订7月云南机票，价格较优",
+    status: "todo",
+    reminder: "both",
+    mode: "offline",
+    attendance: "required"
+  },
+  {
+    id: 17,
+    datetime: "2026-06-01 09:00",
+    type: "daily",
+    title: "预订云南酒店",
+    location: "",
+    note: "提前2-4周预订7月云南酒店，避开旺季高峰",
+    status: "todo",
+    reminder: "both",
+    mode: "offline",
+    attendance: "required"
+  },
+  {
+    id: 24,
+    datetime: "2026-05-15 09:00",
+    type: "daily",
+    title: "提醒：购买相声门票",
+    location: "",
+    note: "5月29日晚相声演出，提前两周提醒购票（2人）",
+    status: "todo",
+    reminder: "both",
+    mode: "offline",
+    attendance: "required"
+  },
+  {
+    id: 25,
+    datetime: "2026-05-29 19:30",
+    type: "daily",
+    title: "看相声",
+    location: "上海云峰剧场",
+    note: "晚上7点半相声演出，2人",
+    status: "todo",
+    reminder: "both",
+    mode: "offline",
+    attendance: "required"
+  },
+  {
+    id: 21,
+    datetime: "2026-05-15 09:00",
+    type: "bridge",
+    title: "找雷总确认6月开发进度",
+    location: "",
+    note: "确认中玺平台功能开发进度（少于5人创建比赛、全场无局设定、完赛弹窗、比赛专区）",
+    status: "todo",
+    reminder: "both",
+    mode: "offline",
+    attendance: "required"
+  },
+  {
+    id: 26,
+    datetime: "2026-03-26 17:00",
+    type: "daily",
+    title: "高尔夫",
+    location: "",
+    note: "下午4点左右结束会议后出发",
+    status: "todo",
+    reminder: "both",
+    mode: "offline",
+    attendance: "required"
+  },
+];
+
+let currentView = 'upcoming';
+let currentType = 'all';
+let searchKeyword = '';
+
+// ===== 工具函数 =====
+const typeLabel = { bridge: "🃏 桥牌", insurance: "🏦 保险", daily: "📌 日常" };
+const typeClass = { bridge: "bridge", insurance: "insurance", daily: "daily" };
+const statusLabel = { todo: "待办", done: "已完成", cancelled: "已取消" };
+const statusClass = { todo: "status-todo", done: "status-done", cancelled: "status-cancelled" };
+const dayNames = ['日','一','二','三','四','五','六'];
+
+function today() { return new Date(new Date().toDateString()); }
+function parseDate(dt) { return new Date(dt); }
+function isSameDay(d1, d2) {
+  return d1.getFullYear()===d2.getFullYear() && d1.getMonth()===d2.getMonth() && d1.getDate()===d2.getDate();
+}
+function formatDate(dt) {
+  const d = parseDate(dt);
+  return `${d.getMonth()+1}月${d.getDate()}日 周${dayNames[d.getDay()]}`;
+}
+function formatTime(dt) { return dt.split(' ')[1] || ''; }
+function getMonthKey(dt) {
+  const d = parseDate(dt);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+function monthKeyLabel(key) {
+  const [y, m] = key.split('-');
+  const now = new Date();
+  if (parseInt(y) === now.getFullYear()) return `${parseInt(m)}月`;
+  return `${y}年${parseInt(m)}月`;
+}
+
+// 高亮关键词
+function highlightText(text, keyword) {
+  if (!keyword || !text) return text || '';
+  const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return text.replace(new RegExp(escaped, 'gi'), m => `<span class="highlight">${m}</span>`);
+}
+
+// ===== 今日摘要 =====
+function renderTodayBar() {
+  const todayDate = today();
+  const now = new Date();
+  document.getElementById('today-date-label').textContent =
+    `今天 ${now.getMonth()+1}月${now.getDate()}日`;
+
+  const todayItems = schedules.filter(s => isSameDay(parseDate(s.datetime), todayDate) && s.status !== 'cancelled');
+  const bar = document.getElementById('today-summary');
+  if (todayItems.length === 0) {
+    bar.innerHTML = '<span style="color:#aaa">今日暂无行程</span>';
+  } else {
+    bar.innerHTML = todayItems.map(s =>
+      `<span class="today-item">
+        <span style="color:${s.type==='bridge'?'#e65100':s.type==='insurance'?'#1565c0':'#2e7d32'}">${typeLabel[s.type]}</span>
+        <span>${formatTime(s.datetime)} ${s.title}</span>
+      </span>`
+    ).join('');
+  }
+}
+
+// ===== 统计 =====
+function renderStats() {
+  const todayDate = today();
+  const upcoming = schedules.filter(s => parseDate(s.datetime) >= todayDate && s.status === 'todo').length;
+  const todayCount = schedules.filter(s => isSameDay(parseDate(s.datetime), todayDate) && s.status !== 'cancelled').length;
+  const done = schedules.filter(s => s.status === 'done').length;
+  document.getElementById('stat-upcoming').textContent = upcoming;
+  document.getElementById('stat-today').textContent = todayCount;
+  document.getElementById('stat-done').textContent = done;
+}
+
+// ===== 搜索 =====
+function onSearch(val) {
+  searchKeyword = val.trim();
+  document.getElementById('search-clear').classList.toggle('show', !!searchKeyword);
+  renderTimeline();
+}
+function clearSearch() {
+  searchKeyword = '';
+  document.getElementById('search-input').value = '';
+  document.getElementById('search-clear').classList.remove('show');
+  renderTimeline();
+}
+
+// ===== 月份导航 =====
+function renderMonthNav(monthGroups, activeMonth) {
+  const nav = document.getElementById('month-nav');
+  const todayDate = today();
+  let html = '<div class="month-nav-title">月份跳转</div>';
+  monthGroups.forEach(([key, items]) => {
+    const d = parseDate(key + '-01');
+    const isPast = d < new Date(todayDate.getFullYear(), todayDate.getMonth(), 1);
+    const label = monthKeyLabel(key);
+    html += `<div class="month-nav-item ${key === activeMonth ? 'active' : ''}" 
+      onclick="scrollToMonth('${key}')" data-month="${key}">
+      ${label}
+      <span class="month-count">${items.length}条</span>
+    </div>`;
+  });
+  nav.innerHTML = html;
+}
+
+function scrollToMonth(key) {
+  const el = document.getElementById('month-' + key);
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // 更新导航高亮
+    document.querySelectorAll('.month-nav-item').forEach(item => {
+      item.classList.toggle('active', item.dataset.month === key);
+    });
+  }
+}
+
+// 监听滚动更新月份导航高亮
+function setupScrollSpy() {
+  window.addEventListener('scroll', () => {
+    const items = document.querySelectorAll('[data-month-anchor]');
+    let current = null;
+    items.forEach(el => {
+      const rect = el.getBoundingClientRect();
+      if (rect.top <= 120) current = el.dataset.monthAnchor;
+    });
+    if (current) {
+      document.querySelectorAll('.month-nav-item').forEach(item => {
+        item.classList.toggle('active', item.dataset.month === current);
+      });
+    }
+  });
+}
+
+// ===== 主渲染 =====
+function renderTimeline() {
+  const todayDate = today();
+  const kw = searchKeyword.toLowerCase();
+
+  // 过滤
+  let list = schedules.filter(s => {
+    if (currentType !== 'all' && s.type !== currentType) return false;
+    const d = parseDate(s.datetime);
+    if (!kw) {
+      if (currentView === 'upcoming') return d >= todayDate || isSameDay(d, todayDate);
+      if (currentView === 'history') return d < todayDate && !isSameDay(d, todayDate);
+    } else {
+      // 搜索模式：忽略视图限制，全局搜索
+      const haystack = [s.title, s.location, s.note, typeLabel[s.type]].join(' ').toLowerCase();
+      if (!haystack.includes(kw)) return false;
+    }
+    return true;
+  });
+
+  // 搜索模式额外处理 view 过滤
+  if (kw) {
+    // 搜索时不过滤 view，但仍过滤 type
+    list = schedules.filter(s => {
+      if (currentType !== 'all' && s.type !== currentType) return false;
+      const haystack = [s.title, s.location, s.note, typeLabel[s.type]].join(' ').toLowerCase();
+      return haystack.includes(kw);
+    });
+  }
+
+  // 排序
+  list.sort((a,b) => {
+    const da = parseDate(a.datetime), db = parseDate(b.datetime);
+    if (currentView === 'history' && !kw) return db - da;
+    return da - db;
+  });
+
+  const container = document.getElementById('timeline-container');
+  const emptyHint = document.getElementById('empty-hint');
+  const searchTip = document.getElementById('search-result-tip');
+
+  if (kw) {
+    searchTip.textContent = `找到 ${list.length} 条包含"${searchKeyword}"的行程`;
+    searchTip.classList.add('show');
+  } else {
+    searchTip.classList.remove('show');
+  }
+
+  if (list.length === 0) {
+    container.innerHTML = '';
+    emptyHint.style.display = 'block';
+    document.getElementById('month-nav').innerHTML = '<div class="month-nav-title">月份跳转</div>';
+    return;
+  }
+  emptyHint.style.display = 'none';
+
+  // 按月分组
+  const monthMap = {};
+  list.forEach(s => {
+    const mk = getMonthKey(s.datetime);
+    if (!monthMap[mk]) monthMap[mk] = [];
+    monthMap[mk].push(s);
+  });
+  const monthGroups = Object.entries(monthMap).sort((a,b) => a[0].localeCompare(b[0]));
+
+  // 判断历史月份是否需要默认折叠
+  // 历史视图时：每个月默认折叠；未来视图/全部视图时：历史月折叠，未来月展开
+  const currentMonthKey = `${todayDate.getFullYear()}-${String(todayDate.getMonth()+1).padStart(2,'0')}`;
+
+  let html = '';
+  monthGroups.forEach(([mk, items]) => {
+    const isPastMonth = mk < currentMonthKey;
+    // 默认折叠：历史且不是当月
+    const collapsed = isPastMonth && mk !== currentMonthKey;
+
+    // 按天分组
+    const dayMap = {};
+    items.forEach(s => {
+      const key = s.datetime.split(' ')[0];
+      if (!dayMap[key]) dayMap[key] = [];
+      dayMap[key].push(s);
+    });
+    const dayGroups = Object.entries(dayMap).sort((a,b) => a[0].localeCompare(b[0]));
+
+    const monthLabel = monthKeyLabel(mk);
+    const isPast = mk < currentMonthKey;
+
+    let daysHtml = '';
+    dayGroups.forEach(([dateKey, dayItems]) => {
+      const d = new Date(dateKey + 'T00:00:00');
+      const isToday = isSameDay(d, todayDate);
+      const isPastDay = d < todayDate && !isToday;
+      const dateLabel = isToday
+        ? `今天 ${d.getMonth()+1}月${d.getDate()}日 周${dayNames[d.getDay()]}`
+        : `${d.getMonth()+1}月${d.getDate()}日 周${dayNames[d.getDay()]}`;
+
+      daysHtml += `
+        <div class="day-group">
+          <div class="day-header">
+            <div class="day-dot ${isToday?'today':isPastDay?'past':'future'}"></div>
+            <div class="day-label ${isToday?'today':isPastDay?'past':''}">${dateLabel}</div>
+            <div class="day-line"></div>
+          </div>
+          ${dayItems.map(s => renderCard(s, kw)).join('')}
+        </div>
+      `;
+    });
+
+    html += `
+      <div class="month-group" id="month-${mk}" data-month-anchor="${mk}">
+        <div class="month-group-header" onclick="toggleMonth('${mk}')">
+          <span class="month-group-title ${isPast?'past':''}">${monthLabel}</span>
+          <span class="month-group-badge">${items.length} 条行程</span>
+          <div class="month-group-line"></div>
+          <span class="month-collapse-icon ${collapsed?'collapsed':''}">▼</span>
+        </div>
+        <div class="month-group-body ${collapsed?'collapsed':''}" id="month-body-${mk}">
+          ${daysHtml}
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+
+  // 渲染月份导航
+  renderMonthNav(monthGroups, monthGroups[0]?.[0]);
+}
+
+// 切换月份折叠
+function toggleMonth(mk) {
+  const body = document.getElementById('month-body-' + mk);
+  const icon = body.previousElementSibling.querySelector('.month-collapse-icon');
+  const isCollapsed = body.classList.contains('collapsed');
+  body.classList.toggle('collapsed');
+  icon.classList.toggle('collapsed', !isCollapsed);
+}
+
+function renderCard(s, kw) {
+  const isToday = isSameDay(parseDate(s.datetime), today());
+  const statusCls = isToday && s.status === 'todo' ? 'status-today' : statusClass[s.status];
+  const statusLbl = isToday && s.status === 'todo' ? '⚡ 今日' : statusLabel[s.status];
+  const title = kw ? highlightText(s.title, kw) : s.title;
+  const location = kw ? highlightText(s.location, kw) : s.location;
+  const note = kw ? highlightText(s.note, kw) : s.note;
+  return `
+    <div class="schedule-card ${typeClass[s.type]} ${s.status}" onclick="showModal(${s.id})">
+      <div class="card-time">${formatTime(s.datetime)}</div>
+      <div class="card-body">
+        <div class="card-top">
+          <span class="type-badge type-${s.type}">${typeLabel[s.type]}</span>
+          <span class="card-title">${title}</span>
+        </div>
+        <div class="card-meta">
+          ${location ? `<span>📍 ${location}</span>` : ''}
+          ${s.reminder ? `<span>🔔 提醒已设</span>` : ''}
+        </div>
+        ${note ? `<div class="card-note">${note}</div>` : ''}
+      </div>
+      <span class="card-status ${statusCls}">${statusLbl}</span>
+    </div>
+  `;
+}
+
+// ===== 弹窗详情 =====
+function showModal(id) {
+  const s = schedules.find(x => x.id === id);
+  const isToday = isSameDay(parseDate(s.datetime), today());
+  const statusCls = isToday && s.status === 'todo' ? 'status-today' : statusClass[s.status];
+  const statusLbl = isToday && s.status === 'todo' ? '⚡ 今日待办' : statusLabel[s.status];
+  const reminderMap = { '1d':'提前1天', '2h':'提前2小时', 'both':'提前1天+当天早上' };
+
+  document.getElementById('modal-content').innerHTML = `
+    <div class="modal-header">
+      <span class="modal-title">🗓️ 行程详情</span>
+      <span class="modal-close" onclick="closeModal()">×</span>
+    </div>
+    <div class="detail-grid">
+      <div class="detail-item"><div class="dl">类型</div><div class="dv"><span class="type-badge type-${s.type}">${typeLabel[s.type]}</span></div></div>
+      <div class="detail-item"><div class="dl">状态</div><div class="dv"><span class="card-status ${statusCls}">${statusLbl}</span></div></div>
+      <div class="detail-item" style="grid-column:1/-1"><div class="dl">标题</div><div class="dv" style="font-size:16px">${s.title}</div></div>
+      <div class="detail-item"><div class="dl">日期时间</div><div class="dv">${formatDate(s.datetime)} ${formatTime(s.datetime)}</div></div>
+      <div class="detail-item"><div class="dl">地点</div><div class="dv">${s.location || '未填写'}</div></div>
+      <div class="detail-item"><div class="dl">提醒设置</div><div class="dv">${reminderMap[s.reminder] || '未设置'}</div></div>
+    </div>
+    ${s.note ? `<div style="margin-bottom:16px"><div style="font-size:11px;color:#aaa;margin-bottom:6px">备注</div><div class="card-note" style="font-size:13px">${s.note}</div></div>` : ''}
+    <div class="modal-actions">
+      ${s.status === 'todo' ? `<button class="btn btn-done" onclick="updateStatus(${s.id},'done')">✅ 标记已完成</button>` : ''}
+      ${s.status === 'todo' ? `<button class="btn btn-cancel-ev" onclick="updateStatus(${s.id},'cancelled')">❌ 取消行程</button>` : ''}
+      ${s.status !== 'todo' ? `<button class="btn btn-undo" onclick="updateStatus(${s.id},'todo')">↩️ 恢复待办</button>` : ''}
+    </div>
+  `;
+  document.getElementById('modal').classList.add('show');
+}
+
+function closeModal(e) {
+  if (!e || e.target === document.getElementById('modal'))
+    document.getElementById('modal').classList.remove('show');
+}
+
+function updateStatus(id, status) {
+  const s = schedules.find(x => x.id === id);
+  s.status = status;
+  const msg = status === 'done' ? '✅ 已标记完成' : status === 'cancelled' ? '已取消行程' : '已恢复为待办';
+  showToast(msg);
+  closeModal();
+  renderAll();
+}
+
+// ===== 筛选 =====
+function setView(view, btn) {
+  currentView = view;
+  document.querySelectorAll('#view-upcoming,#view-history,#view-all').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAll();
+}
+
+function setType(type, btn) {
+  currentType = type;
+  document.querySelectorAll('#type-all,#type-bridge,#type-insurance,#type-daily').forEach(b => {
+    b.classList.remove('active','active-bridge','active-insurance','active-daily');
+  });
+  if (type === 'all') btn.classList.add('active');
+  else btn.classList.add(`active-${type}`);
+  renderAll();
+}
+
+function renderAll() {
+  renderTodayBar();
+  renderStats();
+  renderTimeline();
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+setupScrollSpy();
+renderAll();
+</script>
+</body>
+</html>

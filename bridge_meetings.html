@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>桥牌会议记录</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .icon {
+            font-size: 28px;
+        }
+        .meeting-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .meeting-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+            transform: translateY(-2px);
+        }
+        .meeting-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        .meeting-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        .meeting-date {
+            font-size: 14px;
+            color: #666;
+            background: #f0f0f0;
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+        .meeting-summary {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+        .meeting-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .tag {
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        .tag.platform {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+        .tag.cooperation {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+        .detail-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .detail-content {
+            background: white;
+            border-radius: 16px;
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 30px;
+        }
+        .detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .detail-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: #333;
+        }
+        .close-btn {
+            font-size: 24px;
+            color: #999;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+        .close-btn:hover {
+            color: #333;
+        }
+        .detail-section {
+            margin-bottom: 24px;
+        }
+        .detail-section h3 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 12px;
+            padding-left: 12px;
+            border-left: 4px solid #1976d2;
+        }
+        .detail-section p, .detail-section li {
+            color: #555;
+            line-height: 1.8;
+            font-size: 14px;
+        }
+        .detail-section ul {
+            padding-left: 20px;
+        }
+        .detail-section li {
+            margin-bottom: 8px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #1976d2;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← 返回工作台</a>
+        <h1><span class="icon">🃏</span>桥牌会议记录</h1>
+        
+        <div class="meeting-card" onclick="showDetail(1)">
+            <div class="meeting-header">
+                <div class="meeting-title">浙江省青少年桥牌俱乐部超级联赛项目对接</div>
+                <div class="meeting-date">2025-03-25</div>
+            </div>
+            <div class="meeting-summary">
+                与杭州活动负责人对接，讨论浙江省11个地级市桥牌比赛合作事宜。涉及1000人规模，分幼儿版和少儿版两个组别，5月1日海选赛启动。
+            </div>
+            <div class="meeting-tags">
+                <span class="tag cooperation">战略合作</span>
+                <span class="tag platform">中玺平台</span>
+                <span class="tag">11个地级市</span>
+                <span class="tag">1000人规模</span>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="detail-modal" id="detailModal">
+        <div class="detail-content">
+            <div class="detail-header">
+                <div class="detail-title">浙江省青少年桥牌俱乐部超级联赛 - 会议记录</div>
+                <button class="close-btn" onclick="closeDetail()">×</button>
+            </div>
+            
+            <div class="detail-section">
+                <h3>基本信息</h3>
+                <p><strong>日期：</strong>2025年3月25日</p>
+                <p><strong>会议主题：</strong>浙江省青少年桥牌俱乐部超级联赛项目对接</p>
+                <p><strong>记录人：</strong>桥爷</p>
+            </div>
+
+            <div class="detail-section">
+                <h3>项目背景</h3>
+                <ul>
+                    <li><strong>合作方：</strong>体委、教委联合合作，学校层面推广桥牌课程</li>
+                    <li><strong>影响青少年：</strong>2500-3000人</li>
+                    <li><strong>预估参赛人数：</strong>1000位左右</li>
+                    <li><strong>覆盖范围：</strong>11个地级市</li>
+                </ul>
+            </div>
+
+            <div class="detail-section">
+                <h3>比赛分组</h3>
+                <ul>
+                    <li><strong>幼儿版/低幼儿童版：</strong>新睿平台</li>
+                    <li><strong>少儿版：</strong>中玺桥牌（待定），预计1000人以上</li>
+                </ul>
+            </div>
+
+            <div class="detail-section">
+                <h3>比赛性质与赛制</h3>
+                <ul>
+                    <li>以普及为主，11个地级市已全部开展桥牌课堂</li>
+                    <li>赛制较复杂，中玺平台根据教练指定时间创立比赛</li>
+                    <li>方式：自行创立 或 协助创立</li>
+                </ul>
+            </div>
+
+            <div class="detail-section">
+                <h3>时间安排</h3>
+                <ul>
+                    <li><strong>3月27日（周五）20:00：</strong>线上规程说明会</li>
+                    <li><strong>5月1日：</strong>海选赛正式启动</li>
+                    <li><strong>后续：</strong>可能安排线下集中比赛</li>
+                </ul>
+            </div>
+
+            <div class="detail-section">
+                <h3>合作框架</h3>
+                <ul>
+                    <li>计划签订战略合作框架协议</li>
+                    <li>内容：制定粗略合作条款</li>
+                </ul>
+            </div>
+
+            <div class="detail-section">
+                <h3>中玺平台功能需求</h3>
+                <ul>
+                    <li><strong>少于5人可创建比赛</strong> - 放开人数限制</li>
+                    <li><strong>迷你桥牌全场无局设定</strong> - 支持全场无局赛制</li>
+                    <li><strong>完赛弹窗提示</strong> - 优化用户体验</li>
+                    <li><strong>单独创立比赛专区</strong> - "浙江省青少年桥牌俱乐部超级联赛"</li>
+                </ul>
+            </div>
+
+            <div class="detail-section">
+                <h3>开发计划</h3>
+                <ul>
+                    <li>目前：暂时接受现有规则和规程</li>
+                    <li>开发时间：6月左右开始开发</li>
+                    <li>目标：今年内完成开发</li>
+                    <li>正式上线：明年开始正式使用</li>
+                    <li>原因：如果今年做得好，明年人数可能急剧上升</li>
+                </ul>
+            </div>
+
+            <div class="detail-section">
+                <h3>技术支持</h3>
+                <ul>
+                    <li>线上比赛需要技术指导</li>
+                    <li>需要顾问工作支持</li>
+                </ul>
+            </div>
+
+            <div class="detail-section">
+                <h3>待办事项</h3>
+                <ul>
+                    <li>☐ 3月27日线上规程说明会</li>
+                    <li>☐ 跟进战略合作框架协议签订</li>
+                    <li>☐ 协调中玺平台功能开发排期</li>
+                    <li>☐ 5月1日海选赛启动准备</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showDetail(id) {
+            document.getElementById('detailModal').style.display = 'flex';
+        }
+        
+        function closeDetail() {
+            document.getElementById('detailModal').style.display = 'none';
+        }
+        
+        document.getElementById('detailModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDetail();
+            }
+        });
+    </script>
+</body>
+</html>

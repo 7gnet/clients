@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>保险视频号文案库</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f0f2f7; color: #333; min-height: 100vh; }
+
+  .header {
+    background: linear-gradient(135deg, #ff6b35, #f7931e);
+    color: white; padding: 20px 30px;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+  }
+  .header h1 { font-size: 20px; font-weight: 600; }
+  .header .subtitle { font-size: 13px; opacity: 0.85; margin-top: 4px; }
+  .header-right { display: flex; gap: 12px; }
+  .stat-badge { background: rgba(255,255,255,0.18); border-radius: 20px; padding: 6px 16px; font-size: 13px; text-align: center; }
+  .stat-badge .num { font-size: 20px; font-weight: 700; display: block; }
+
+  /* 导航Tab */
+  .tab-bar {
+    background: white;
+    display: flex;
+    border-bottom: 2px solid #f0f0f0;
+  }
+  .tab-btn {
+    padding: 14px 28px;
+    border: none; background: none;
+    font-size: 14px; font-weight: 600; color: #888;
+    cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px;
+    transition: all 0.2s;
+  }
+  .tab-btn.active { color: #ff6b35; border-bottom-color: #ff6b35; }
+  .tab-btn:hover { color: #ff6b35; }
+
+  /* 筛选栏 */
+  .filter-bar {
+    background: white; padding: 14px 30px;
+    display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+    border-bottom: 1px solid #e8e8e8; box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  }
+  .filter-btn {
+    padding: 6px 18px; border-radius: 20px; border: 1.5px solid #ddd;
+    background: white; cursor: pointer; font-size: 13px; transition: all 0.2s; color: #555;
+  }
+  .filter-btn:hover { border-color: #ff6b35; color: #ff6b35; }
+  .filter-btn.active { background: #ff6b35; color: white; border-color: #ff6b35; }
+  .random-btn {
+    margin-left: auto; padding: 8px 20px;
+    background: linear-gradient(135deg, #ff6b35, #f7931e);
+    color: white; border: none; border-radius: 20px;
+    cursor: pointer; font-size: 13px; font-weight: 600; transition: opacity 0.2s;
+  }
+  .random-btn:hover { opacity: 0.85; }
+
+  .main { padding: 24px 30px; }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* 文案卡片 */
+  .card-list { display: flex; flex-direction: column; gap: 16px; max-width: 800px; margin: 0 auto; }
+  .card {
+    background: white; border-radius: 12px; padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07); border-left: 5px solid;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+  .card.unused { border-left-color: #1a73e8; }
+  .card.used { border-left-color: #ccc; opacity: 0.65; }
+  .card.highlight { border-left-color: #ff6b35; background: #fff8f5; }
+
+  .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .card-num { font-size: 12px; color: #aaa; font-weight: 600; }
+  .card-tags { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .tag { font-size: 11px; padding: 3px 10px; border-radius: 10px; font-weight: 600; }
+  .tag-unused { background: #e3f0ff; color: #1a73e8; }
+  .tag-used { background: #f0f0f0; color: #999; }
+  .tag-type { background: #fff3e0; color: #e65100; }
+  .tag-risk { background: #fdecea; color: #c62828; }
+  .tag-safe { background: #e8f5e9; color: #2e7d32; }
+
+  /* 原文区域 */
+  .section-label { font-size: 11px; color: #aaa; font-weight: 600; margin-bottom: 6px; letter-spacing: 1px; }
+  .card-content {
+    font-size: 14px; line-height: 1.8; color: #444;
+    margin-bottom: 14px; white-space: pre-wrap;
+  }
+  .card.used .card-content { color: #999; }
+
+  /* 高亮违规词 */
+  .risk-word { background: #fdecea; color: #c62828; border-radius: 3px; padding: 0 3px; font-weight: 600; }
+
+  /* 合规检测结果 */
+  .compliance-result {
+    border-radius: 8px; padding: 12px 14px; margin-bottom: 14px;
+    display: none; font-size: 13px; line-height: 1.8;
+  }
+  .compliance-result.show { display: block; }
+  .compliance-result.pass { background: #e8f5e9; border: 1px solid #a5d6a7; color: #2e7d32; }
+  .compliance-result.fail { background: #fdecea; border: 1px solid #ef9a9a; color: #b71c1c; }
+  .risk-item { margin-top: 6px; padding: 6px 10px; background: rgba(255,255,255,0.6); border-radius: 6px; }
+  .risk-item .risk-type { font-weight: 700; color: #c62828; }
+
+  /* 润色版 */
+  .card-polished {
+    background: #f8fff8; border: 1px solid #c8e6c9; border-radius: 8px;
+    padding: 14px; margin-bottom: 14px; display: none;
+  }
+  .card-polished.show { display: block; }
+  .polished-label { font-size: 11px; color: #43a047; font-weight: 600; margin-bottom: 8px; }
+  .polished-text { font-size: 14px; line-height: 1.8; color: #333; white-space: pre-wrap; }
+
+  /* 按钮区 */
+  .card-footer { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+  .btn {
+    padding: 6px 16px; border-radius: 8px; border: none;
+    cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s;
+  }
+  .btn-compliance { background: #fce4ec; color: #c62828; }
+  .btn-compliance:hover { background: #c62828; color: white; }
+  .btn-polish { background: #e3f0ff; color: #1a73e8; }
+  .btn-polish:hover { background: #1a73e8; color: white; }
+  .btn-use { background: #e8f5e9; color: #2e7d32; }
+  .btn-use:hover { background: #43a047; color: white; }
+  .btn-unuse { background: #f5f5f5; color: #888; }
+  .btn-unuse:hover { background: #ddd; color: #333; }
+  .btn-copy { background: #fff3e0; color: #e65100; }
+  .btn-copy:hover { background: #ff6b35; color: white; }
+
+  /* ===== 合规规则库页面 ===== */
+  .rules-page { max-width: 800px; margin: 0 auto; }
+  .rules-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .rules-header h2 { font-size: 16px; font-weight: 700; color: #333; }
+  .btn-add-rule {
+    padding: 8px 20px; background: linear-gradient(135deg, #c62828, #e53935);
+    color: white; border: none; border-radius: 20px;
+    cursor: pointer; font-size: 13px; font-weight: 600;
+  }
+  .btn-add-rule:hover { opacity: 0.85; }
+
+  .rule-group { margin-bottom: 24px; }
+  .rule-group-title {
+    font-size: 13px; font-weight: 700; color: #c62828;
+    margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+  }
+  .rule-group-title::after { content: ''; flex: 1; height: 1px; background: #fdecea; }
+
+  .rule-item {
+    background: white; border-radius: 10px; padding: 14px 16px;
+    margin-bottom: 8px; display: flex; align-items: flex-start;
+    justify-content: space-between; gap: 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06); border-left: 4px solid #ef9a9a;
+  }
+  .rule-info { flex: 1; }
+  .rule-keyword { font-size: 14px; font-weight: 600; color: #c62828; margin-bottom: 4px; }
+  .rule-desc { font-size: 12px; color: #888; line-height: 1.6; }
+  .rule-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .btn-del-rule {
+    padding: 4px 12px; background: #fdecea; color: #c62828;
+    border: none; border-radius: 6px; cursor: pointer; font-size: 12px;
+  }
+  .btn-del-rule:hover { background: #c62828; color: white; }
+
+  /* 添加规则弹窗 */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45); z-index: 100;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: white; border-radius: 16px; padding: 28px;
+    width: 440px; max-width: 95vw;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  }
+  .modal-title { font-size: 16px; font-weight: 700; margin-bottom: 20px; }
+  .form-group { margin-bottom: 16px; }
+  .form-label { font-size: 13px; color: #666; margin-bottom: 6px; display: block; }
+  .form-input, .form-select, .form-textarea {
+    width: 100%; padding: 10px 14px; border: 1.5px solid #ddd;
+    border-radius: 8px; font-size: 14px; outline: none;
+    transition: border-color 0.2s; font-family: inherit;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: #c62828; }
+  .form-textarea { resize: vertical; min-height: 80px; }
+  .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+  .btn-cancel { padding: 9px 20px; background: #f5f5f5; color: #666; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; }
+  .btn-confirm { padding: 9px 20px; background: #c62828; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; }
+
+  .empty-hint { text-align: center; color: #bbb; font-size: 15px; padding: 60px 0; }
+
+  .toast {
+    position: fixed; bottom: 30px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #333; color: white; padding: 10px 24px;
+    border-radius: 20px; font-size: 14px; opacity: 0;
+    transition: all 0.3s; z-index: 999; pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 600px) {
+    .main { padding: 16px; }
+    .filter-bar { padding: 10px 16px; }
+    .header { padding: 16px; }
+    .header-right { display: none; }
+    .tab-btn { padding: 12px 16px; font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>📝 保险视频号文案库</h1>
+    <div class="subtitle">管理文案 · 合规检测 · 追踪使用状态</div>
+  </div>
+  <div class="header-right">
+    <div class="stat-badge"><span class="num" id="total-count">0</span>总文案</div>
+    <div class="stat-badge"><span class="num" id="unused-count">0</span>未使用</div>
+    <div class="stat-badge"><span class="num" id="used-count">0</span>已使用</div>
+  </div>
+</div>
+
+<!-- Tab导航 -->
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('copylib', this)">📄 文案库</button>
+  <button class="tab-btn" onclick="switchTab('rules', this)">⚠️ 合规规则库</button>
+</div>
+
+<!-- 文案库筛选栏 -->
+<div class="filter-bar" id="filter-bar">
+  <button class="filter-btn active" onclick="filterCards('all', this)">全部</button>
+  <button class="filter-btn" onclick="filterCards('unused', this)">🔵 未使用</button>
+  <button class="filter-btn" onclick="filterCards('used', this)">✅ 已使用</button>
+  <button class="random-btn" onclick="pickRandom()">🎲 随机挑一条</button>
+</div>
+
+<div class="main">
+
+  <!-- 文案库页面 -->
+  <div class="page active" id="page-copylib">
+    <div class="card-list" id="card-list"></div>
+    <div class="empty-hint" id="empty-hint" style="display:none">暂无文案 📥</div>
+  </div>
+
+  <!-- 合规规则库页面 -->
+  <div class="page" id="page-rules">
+    <div class="rules-page">
+      <div class="rules-header">
+        <h2>⚠️ 合规检测规则库 <span style="font-size:12px;color:#aaa;font-weight:400">（可随时增删，检测实时生效）</span></h2>
+        <button class="btn-add-rule" onclick="openAddRule()">＋ 新增规则</button>
+      </div>
+      <div id="rules-container"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- 新增规则弹窗 -->
+<div class="modal-overlay" id="rule-modal" onclick="closeRuleModal(event)">
+  <div class="modal">
+    <div class="modal-title">➕ 新增合规规则</div>
+    <div class="form-group">
+      <label class="form-label">风险类型 <span style="color:#c62828">*</span></label>
+      <select class="form-select" id="rule-type">
+        <option value="承诺收益">承诺收益/回报</option>
+        <option value="夸大保障">夸大保障范围</option>
+        <option value="诱导性表达">诱导性表达</option>
+        <option value="违规用语">违规宣传用语</option>
+        <option value="贬低竞品">贬低竞争对手</option>
+        <option value="恐吓性表达">恐吓性表达</option>
+        <option value="其他">其他</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">违规关键词 <span style="color:#c62828">*</span>（多个用逗号隔开）</label>
+      <input class="form-input" id="rule-keywords" placeholder="例：保证收益,稳赚,一定赔" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">风险说明</label>
+      <textarea class="form-textarea" id="rule-desc" placeholder="说明这类表达为何违规，或应如何修改..."></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeRuleModal()">取消</button>
+      <button class="btn-confirm" onclick="addRule()">确认添加</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== 文案数据库 =====
+const copyDB = [
+  {
+    id: 1,
+    type: "情感共鸣",
+    used: false,
+    original: `一个家的风雨，谁来守护？
+房贷压力大时，为你分担经济负担的，是卖保险的人；子女教育用钱时，为你准备教育基金的，是卖保险的人；收入中断时，为你延续生活保障的，还是卖保险的人。
+销售无处不在，但真正能在家庭需要时雪中送炭的，往往是那个被轻视的卖保险的人。`,
+    polished: `那个你最不想接电话的人，可能是最后一个替你撑起这个家的人。
+
+房贷还不上的那一天，为你垫底的是保险；
+孩子上大学学费不够的那一年，提前备好钱的是保险；
+你突然走不了了、干不动了，还能让家人过下去的，也是保险。
+
+我们常常嘲笑"卖保险的"——
+但等真正用上的那天，你会发现，
+那个你拉黑过的号码，其实是你家最后一道防线。
+
+保险不是在卖焦虑，是在替你守着那些万一。`
+  }
+];
+
+// ===== 合规规则库 =====
+let complianceRules = [
+  { id: 1, type: "承诺收益", keywords: ["保证收益","保证回报","稳赚","一定赚","稳定收益","保本","零风险"], desc: "不得承诺保险产品的投资回报，违反保险销售规定。" },
+  { id: 2, type: "夸大保障", keywords: ["什么都保","百病皆保","全险","包治百病","所有疾病","绝对理赔"], desc: "夸大保险保障范围，容易引起客户误解和投诉。" },
+  { id: 3, type: "诱导性表达", keywords: ["不买后悔","最后机会","赶紧买","限时","错过不再有","必须买"], desc: "使用紧迫性诱导话术，违反保险销售合规要求。" },
+  { id: 4, type: "违规用语", keywords: ["国家规定","政府背书","官方认证","国家强制","监管要求购买"], desc: "不得借用政府或监管机构名义进行产品宣传。" },
+  { id: 5, type: "贬低竞品", keywords: ["某某保险不好","同行骗局","比XX好","XX公司烂"], desc: "不得公开贬低竞争对手，违反行业公平竞争原则。" },
+  { id: 6, type: "恐吓性表达", keywords: ["不买会死","一定得病","肯定出事","迟早出意外"], desc: "过度渲染恐惧情绪，属于不当销售行为。" }
+];
+let ruleIdCounter = complianceRules.length + 1;
+
+// ===== Tab切换 =====
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(`page-${tab}`).classList.add('active');
+  document.getElementById('filter-bar').style.display = tab === 'copylib' ? 'flex' : 'none';
+  if (tab === 'rules') renderRules();
+}
+
+// ===== 合规检测 =====
+function checkCompliance(text) {
+  const hits = [];
+  complianceRules.forEach(rule => {
+    rule.keywords.forEach(kw => {
+      if (text.includes(kw)) {
+        hits.push({ keyword: kw, type: rule.type, desc: rule.desc });
+      }
+    });
+  });
+  return hits;
+}
+
+function highlightRiskWords(text, hits) {
+  let result = escHtml(text);
+  const keywords = [...new Set(hits.map(h => h.keyword))];
+  keywords.forEach(kw => {
+    const escaped = escHtml(kw);
+    result = result.split(escaped).join(`<span class="risk-word">${escaped}</span>`);
+  });
+  return result;
+}
+
+// ===== 渲染文案 =====
+let currentFilter = 'all';
+
+function renderAll(filter) {
+  currentFilter = filter;
+  const list = filter === 'all' ? copyDB
+    : filter === 'unused' ? copyDB.filter(c => !c.used)
+    : copyDB.filter(c => c.used);
+
+  const container = document.getElementById('card-list');
+  const emptyHint = document.getElementById('empty-hint');
+
+  if (list.length === 0) {
+    container.innerHTML = '';
+    emptyHint.style.display = 'block';
+  } else {
+    emptyHint.style.display = 'none';
+    container.innerHTML = list.map(c => renderCard(c)).join('');
+  }
+
+  document.getElementById('total-count').textContent = copyDB.length;
+  document.getElementById('unused-count').textContent = copyDB.filter(c => !c.used).length;
+  document.getElementById('used-count').textContent = copyDB.filter(c => c.used).length;
+}
+
+function renderCard(c) {
+  const hits = c._complianceChecked ? checkCompliance(c.original) : null;
+  const contentHtml = hits && hits.length > 0
+    ? highlightRiskWords(c.original, hits)
+    : escHtml(c.original);
+
+  // 合规结果区域
+  let complianceHtml = '';
+  if (c._complianceChecked) {
+    if (hits.length === 0) {
+      complianceHtml = `<div class="compliance-result pass show">✅ 合规检测通过，未发现违规表达。</div>`;
+    } else {
+      const items = hits.map(h =>
+        `<div class="risk-item"><span class="risk-type">【${h.type}】</span> 关键词「${h.keyword}」— ${h.desc}</div>`
+      ).join('');
+      complianceHtml = `<div class="compliance-result fail show">⚠️ 发现 ${hits.length} 处合规风险，请注意修改：${items}</div>`;
+    }
+  }
+
+  // 状态tag
+  const riskTag = c._complianceChecked
+    ? (hits.length === 0
+      ? `<span class="tag tag-safe">✅ 合规</span>`
+      : `<span class="tag tag-risk">⚠️ ${hits.length}处风险</span>`)
+    : '';
+
+  return `
+    <div class="card ${c.used ? 'used' : 'unused'}" id="card-${c.id}">
+      <div class="card-header">
+        <span class="card-num">#${String(c.id).padStart(3,'0')}</span>
+        <div class="card-tags">
+          <span class="tag tag-type">${c.type}</span>
+          ${riskTag}
+          <span class="tag ${c.used ? 'tag-used' : 'tag-unused'}">${c.used ? '✅ 已使用' : '🔵 未使用'}</span>
+        </div>
+      </div>
+      <div class="section-label">原文</div>
+      <div class="card-content">${contentHtml}</div>
+      ${complianceHtml}
+      <div class="card-polished ${c._showPolished ? 'show' : ''}">
+        <div class="polished-label">✨ 润色版本</div>
+        <div class="polished-text">${escHtml(c.polished)}</div>
+      </div>
+      <div class="card-footer">
+        <button class="btn btn-compliance" onclick="toggleCompliance(${c.id})">${c._complianceChecked ? '🔄 重新检测' : '🔍 合规检测'}</button>
+        ${c.polished ? `<button class="btn btn-polish" onclick="togglePolish(${c.id})">✨ ${c._showPolished ? '收起润色' : '查看润色版'}</button>` : ''}
+        ${c.polished ? `<button class="btn btn-copy" onclick="copyPolished(${c.id})">📋 复制润色版</button>` : ''}
+        ${!c.used
+          ? `<button class="btn btn-use" onclick="markUsed(${c.id})">✅ 标记已使用</button>`
+          : `<button class="btn btn-unuse" onclick="markUnused(${c.id})">↩️ 撤回</button>`}
+      </div>
+    </div>
+  `;
+}
+
+function escHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function toggleCompliance(id) {
+  const c = copyDB.find(x => x.id === id);
+  c._complianceChecked = true;
+  const hits = checkCompliance(c.original);
+  showToast(hits.length === 0 ? '✅ 合规检测通过！' : `⚠️ 发现 ${hits.length} 处合规风险`);
+  document.getElementById(`card-${id}`).outerHTML = renderCard(c);
+}
+
+function togglePolish(id) {
+  const c = copyDB.find(x => x.id === id);
+  c._showPolished = !c._showPolished;
+  document.getElementById(`card-${id}`).outerHTML = renderCard(c);
+}
+
+function markUsed(id) {
+  const c = copyDB.find(x => x.id === id);
+  c.used = true;
+  showToast('已标记为「已使用」✅');
+  renderAll(currentFilter);
+}
+
+function markUnused(id) {
+  const c = copyDB.find(x => x.id === id);
+  c.used = false;
+  showToast('已撤回为「未使用」');
+  renderAll(currentFilter);
+}
+
+function copyPolished(id) {
+  const c = copyDB.find(x => x.id === id);
+  navigator.clipboard.writeText(c.polished).then(() => {
+    showToast('润色版已复制到剪贴板 📋');
+  }).catch(() => showToast('复制失败，请手动复制'));
+}
+
+function pickRandom() {
+  const unused = copyDB.filter(c => !c.used);
+  if (unused.length === 0) { showToast('所有文案都已使用过了！'); return; }
+  const picked = unused[Math.floor(Math.random() * unused.length)];
+  filterCards('all', document.querySelector('.filter-btn'));
+  setTimeout(() => {
+    const el = document.getElementById(`card-${picked.id}`);
+    if (el) {
+      el.classList.add('highlight');
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => el.classList.remove('highlight'), 2500);
+    }
+  }, 100);
+  showToast(`🎲 为你推荐 #${String(picked.id).padStart(3,'0')} 号文案`);
+}
+
+function filterCards(status, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderAll(status);
+}
+
+// ===== 合规规则库渲染 =====
+function renderRules() {
+  const container = document.getElementById('rules-container');
+  // 按类型分组
+  const groups = {};
+  complianceRules.forEach(r => {
+    if (!groups[r.type]) groups[r.type] = [];
+    groups[r.type].push(r);
+  });
+  if (Object.keys(groups).length === 0) {
+    container.innerHTML = '<div class="empty-hint">暂无规则，点击「新增规则」添加</div>';
+    return;
+  }
+  container.innerHTML = Object.entries(groups).map(([type, rules]) => `
+    <div class="rule-group">
+      <div class="rule-group-title">⚠️ ${type}</div>
+      ${rules.map(r => `
+        <div class="rule-item" id="rule-${r.id}">
+          <div class="rule-info">
+            <div class="rule-keyword">🔑 ${r.keywords.join('、')}</div>
+            <div class="rule-desc">${escHtml(r.desc)}</div>
+          </div>
+          <div class="rule-actions">
+            <button class="btn-del-rule" onclick="deleteRule(${r.id})">删除</button>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+function openAddRule() {
+  document.getElementById('rule-modal').classList.add('show');
+}
+
+function closeRuleModal(e) {
+  if (!e || e.target === document.getElementById('rule-modal')) {
+    document.getElementById('rule-modal').classList.remove('show');
+    document.getElementById('rule-keywords').value = '';
+    document.getElementById('rule-desc').value = '';
+  }
+}
+
+function addRule() {
+  const type = document.getElementById('rule-type').value;
+  const kwRaw = document.getElementById('rule-keywords').value.trim();
+  const desc = document.getElementById('rule-desc').value.trim();
+  if (!kwRaw) { showToast('请填写违规关键词'); return; }
+  const keywords = kwRaw.split(/[,，]/).map(k => k.trim()).filter(Boolean);
+  complianceRules.push({ id: ruleIdCounter++, type, keywords, desc });
+  closeRuleModal();
+  renderRules();
+  showToast('✅ 规则已添加！');
+}
+
+function deleteRule(id) {
+  complianceRules = complianceRules.filter(r => r.id !== id);
+  // 清除文案的合规检测缓存
+  copyDB.forEach(c => { c._complianceChecked = false; });
+  renderRules();
+  showToast('规则已删除');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+renderAll('all');
+</script>
+</body>
+</html>
