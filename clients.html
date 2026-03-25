@@ -406,7 +406,12 @@ function searchCards(keyword) {
 }
 
 function showModal(id) {
+  console.log('点击客户ID:', id);
   const c = customers.find(x => x.id == id);
+  if (!c) {
+    console.log('未找到客户:', id);
+    return;
+  }
   const overdue = c.nextContact && isOverdue(c.nextContact);
   const displayAge = calculateAge(c.birthday, c.analysis?.ageEstimate) || c.age;
   document.getElementById('modal-content').innerHTML = `
