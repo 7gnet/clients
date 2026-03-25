@@ -3,494 +3,219 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>保险客户管理看板</title>
+<title>我的工具箱</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f0f2f7; color: #333; min-height: 100vh; }
-
-  /* 顶部导航 */
-  .header {
-    background: linear-gradient(135deg, #1a73e8, #0d47a1);
-    color: white;
-    padding: 20px 30px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+  body {
+    font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: #f0f2f7; color: #333; min-height: 100vh;
   }
-  .header h1 { font-size: 22px; font-weight: 600; }
-  .header .subtitle { font-size: 13px; opacity: 0.8; margin-top: 4px; }
-  .header-right { display: flex; gap: 12px; align-items: center; }
-  .stat-badge {
-    background: rgba(255,255,255,0.15);
-    border-radius: 20px;
-    padding: 6px 16px;
-    font-size: 13px;
+
+  /* 顶部 */
+  .header {
+    background: linear-gradient(135deg, #1a237e, #283593);
+    color: white; padding: 32px 24px 28px;
     text-align: center;
   }
-  .stat-badge .num { font-size: 20px; font-weight: 700; display: block; }
+  .header h1 { font-size: 22px; font-weight: 700; letter-spacing: 1px; }
+  .header .subtitle { font-size: 13px; opacity: 0.7; margin-top: 6px; }
+  .header .date-label {
+    display: inline-block; margin-top: 12px;
+    background: rgba(255,255,255,0.15); border-radius: 20px;
+    padding: 4px 16px; font-size: 12px;
+  }
 
-  /* 筛选栏 */
-  .filter-bar {
-    background: white;
-    padding: 14px 30px;
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    align-items: center;
-    border-bottom: 1px solid #e8e8e8;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-  }
-  .filter-btn {
-    padding: 6px 18px;
-    border-radius: 20px;
-    border: 1.5px solid #ddd;
-    background: white;
-    cursor: pointer;
-    font-size: 13px;
-    transition: all 0.2s;
-    color: #555;
-  }
-  .filter-btn:hover { border-color: #1a73e8; color: #1a73e8; }
-  .filter-btn.active { background: #1a73e8; color: white; border-color: #1a73e8; }
-  .search-box {
-    margin-left: auto;
-    padding: 6px 16px;
-    border: 1.5px solid #ddd;
-    border-radius: 20px;
-    font-size: 13px;
-    outline: none;
-    width: 200px;
-    transition: border-color 0.2s;
-  }
-  .search-box:focus { border-color: #1a73e8; }
+  /* 主区域 */
+  .main { max-width: 680px; margin: 0 auto; padding: 24px 16px 40px; }
 
-  /* 主内容区 */
-  .main { padding: 24px 30px; }
-
-  /* 看板列 */
-  .kanban { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
-  .column {
-    background: #f8f9fc;
-    border-radius: 12px;
-    padding: 16px;
-    min-height: 400px;
-  }
-  .column-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+  /* 分类块 */
+  .section { margin-bottom: 28px; }
+  .section-header {
+    display: flex; align-items: center; gap: 10px;
     margin-bottom: 14px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid;
   }
-  .column-title { font-size: 14px; font-weight: 600; }
-  .column-count {
-    background: rgba(0,0,0,0.08);
-    border-radius: 12px;
-    padding: 2px 10px;
-    font-size: 12px;
-    font-weight: 600;
+  .section-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+  .section-icon.bridge { background: #fff3e0; }
+  .section-icon.insurance { background: #e3f0ff; }
+  .section-icon.common { background: #e8f5e9; }
+  .section-title { font-size: 16px; font-weight: 700; color: #333; }
+  .section-desc { font-size: 12px; color: #aaa; margin-top: 2px; }
+  .section-line { flex: 1; height: 1px; background: #e8e8e8; }
+
+  /* 工具卡片网格 */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
 
-  .col-pending .column-header { border-color: #ff7043; }
-  .col-pending .column-title { color: #ff7043; }
-  .col-following .column-header { border-color: #fb8c00; }
-  .col-following .column-title { color: #fb8c00; }
-  .col-done .column-header { border-color: #43a047; }
-  .col-done .column-title { color: #43a047; }
-  .col-hold .column-header { border-color: #8e9aaf; }
-  .col-hold .column-title { color: #8e9aaf; }
-
-  /* 客户卡片 */
-  .card {
-    background: white;
-    border-radius: 10px;
-    padding: 14px;
-    margin-bottom: 12px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-    border-left: 4px solid;
-    transition: transform 0.15s, box-shadow 0.15s;
-    cursor: pointer;
+  /* 工具卡片 */
+  .tool-card {
+    background: white; border-radius: 14px;
+    padding: 18px 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    text-decoration: none; color: inherit;
+    display: flex; flex-direction: column; gap: 8px;
+    transition: all 0.2s; cursor: pointer;
+    border: 1.5px solid transparent;
+    position: relative; overflow: hidden;
   }
-  .card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.1); }
-  .card-pending { border-left-color: #ff7043; }
-  .card-following { border-left-color: #fb8c00; }
-  .card-done { border-left-color: #43a047; }
-  .card-hold { border-left-color: #8e9aaf; }
-
-  .card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-  .card-name { font-size: 15px; font-weight: 600; }
-  .card-age { font-size: 12px; color: #888; background: #f5f5f5; padding: 2px 8px; border-radius: 10px; }
-
-  .card-contact { font-size: 12px; color: #666; margin-bottom: 8px; }
-  .card-contact span { margin-right: 8px; }
-
-  .card-policies { margin-bottom: 8px; }
-  .policy-tag {
-    display: inline-block;
-    font-size: 11px;
-    padding: 2px 8px;
-    border-radius: 4px;
-    margin: 2px 2px 2px 0;
+  .tool-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
   }
-  .tag-owned { background: #e8f5e9; color: #2e7d32; }
-  .tag-intent { background: #fff3e0; color: #e65100; }
+  .tool-card.bridge:hover { border-color: #e65100; }
+  .tool-card.insurance:hover { border-color: #1565c0; }
+  .tool-card.common:hover { border-color: #2e7d32; }
 
-  .card-source { font-size: 11px; color: #aaa; margin-bottom: 8px; }
-
-  .card-footer { display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #f0f0f0; padding-top: 8px; margin-top: 6px; }
-  .card-date { font-size: 11px; color: #999; }
-  .next-date { font-size: 11px; color: #1a73e8; font-weight: 500; }
-  .overdue { color: #e53935 !important; }
-
-  .card-note { font-size: 12px; color: #777; background: #fafafa; border-radius: 6px; padding: 6px 8px; margin-top: 6px; border-left: 2px solid #e0e0e0; }
-
-  /* 弹窗 */
-  .modal-overlay {
-    display: none;
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.45);
-    z-index: 100;
-    align-items: center;
-    justify-content: center;
+  /* 卡片顶部色条 */
+  .tool-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
   }
-  .modal-overlay.show { display: flex; }
-  .modal {
-    background: white;
-    border-radius: 16px;
-    padding: 28px;
-    width: 480px;
-    max-width: 95vw;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  .tool-card.bridge::before { background: linear-gradient(90deg, #e65100, #ff8a50); }
+  .tool-card.insurance::before { background: linear-gradient(90deg, #1565c0, #42a5f5); }
+  .tool-card.common::before { background: linear-gradient(90deg, #2e7d32, #66bb6a); }
+
+  .card-icon { font-size: 28px; }
+  .card-name { font-size: 15px; font-weight: 700; color: #222; }
+  .card-desc { font-size: 12px; color: #999; line-height: 1.5; }
+  .card-tag {
+    display: inline-block; font-size: 10px; padding: 2px 8px;
+    border-radius: 8px; font-weight: 600; align-self: flex-start;
+    margin-top: 2px;
   }
-  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-  .modal-title { font-size: 18px; font-weight: 700; }
-  .modal-close { cursor: pointer; font-size: 22px; color: #999; line-height: 1; }
-  .modal-close:hover { color: #333; }
+  .tag-bridge { background: #fff3e0; color: #e65100; }
+  .tag-insurance { background: #e3f0ff; color: #1565c0; }
+  .tag-common { background: #e8f5e9; color: #2e7d32; }
 
-  .modal-section { margin-bottom: 16px; }
-  .modal-label { font-size: 12px; color: #999; margin-bottom: 4px; }
-  .modal-value { font-size: 14px; color: #333; }
-
-  .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
-
-  /* 响应式 */
-  @media (max-width: 900px) {
-    .kanban { grid-template-columns: repeat(2, 1fr); }
-    .main { padding: 16px; }
+  /* 即将开放卡片 */
+  .tool-card.coming {
+    opacity: 0.5; cursor: default;
+    background: #fafafa;
   }
-  @media (max-width: 580px) {
-    .kanban { grid-template-columns: 1fr; }
-    .header { padding: 16px; }
-    .filter-bar { padding: 10px 16px; }
+  .tool-card.coming:hover { transform: none; box-shadow: 0 2px 10px rgba(0,0,0,0.06); border-color: transparent; }
+  .coming-label {
+    position: absolute; top: 10px; right: 10px;
+    font-size: 10px; background: #f0f0f0; color: #bbb;
+    padding: 2px 7px; border-radius: 6px;
+  }
+
+  /* 底部说明 */
+  .footer {
+    text-align: center; color: #ccc; font-size: 12px;
+    padding: 20px 0 10px;
+  }
+  .footer a { color: #bbb; text-decoration: none; }
+
+  @media (max-width: 400px) {
+    .card-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
 <body>
 
 <div class="header">
-  <div>
-    <h1>🏦 保险客户管理看板</h1>
-    <div class="subtitle">实时跟踪客户状态 · 不遗漏每一个机会</div>
-  </div>
-  <div class="header-right">
-    <div class="stat-badge"><span class="num" id="total-count">0</span>总客户</div>
-    <div class="stat-badge"><span class="num" id="intent-count">0</span>意向中</div>
-    <div class="stat-badge"><span class="num" id="done-count">0</span>已成交</div>
-  </div>
-</div>
-
-<div class="filter-bar">
-  <button class="filter-btn active" onclick="filterCards('all', this)">全部</button>
-  <button class="filter-btn" onclick="filterCards('pending', this)">🔴 待跟进</button>
-  <button class="filter-btn" onclick="filterCards('following', this)">🟡 跟进中</button>
-  <button class="filter-btn" onclick="filterCards('done', this)">🟢 已成交</button>
-  <button class="filter-btn" onclick="filterCards('hold', this)">⚫ 暂缓</button>
-  <input class="search-box" type="text" placeholder="🔍 搜索客户姓名..." oninput="searchCards(this.value)">
+  <h1>🗂️ 我的工具箱</h1>
+  <div class="subtitle">桥牌运营 · 保险代理 · 日常管理</div>
+  <div class="date-label" id="date-label">加载中…</div>
 </div>
 
 <div class="main">
-  <div class="kanban">
-    <div class="column col-pending">
-      <div class="column-header">
-        <span class="column-title">🔴 待跟进</span>
-        <span class="column-count" id="count-pending">0</span>
+
+  <!-- 🏦 保险工作 -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon insurance">🏦</div>
+      <div>
+        <div class="section-title">保险工作</div>
+        <div class="section-desc">客户管理 · 内容运营</div>
       </div>
-      <div id="col-pending"></div>
+      <div class="section-line"></div>
     </div>
-    <div class="column col-following">
-      <div class="column-header">
-        <span class="column-title">🟡 跟进中</span>
-        <span class="column-count" id="count-following">0</span>
-      </div>
-      <div id="col-following"></div>
-      <div class="column-empty" id="empty-following" style="display:none;padding:30px 20px;text-align:center;color:#999;font-size:13px;">
-        <div style="font-size:24px;margin-bottom:8px;">📋</div>
-        <div>暂无跟进中客户</div>
-        <div style="font-size:12px;margin-top:6px;opacity:0.7;">有意向、正在沟通的客户放这里</div>
-      </div>
+    <div class="card-grid">
+      <a class="tool-card insurance" href="clients.html">
+        <div class="card-icon">👥</div>
+        <div class="card-name">客户看板</div>
+        <div class="card-desc">客户信息管理、跟进状态、逾期提醒</div>
+        <span class="card-tag tag-insurance">保险</span>
+      </a>
+      <a class="tool-card insurance" href="copylib.html">
+        <div class="card-icon">✍️</div>
+        <div class="card-name">文案库</div>
+        <div class="card-desc">视频号文案存储、合规检测、一键润色</div>
+        <span class="card-tag tag-insurance">保险</span>
+      </a>
     </div>
-    <div class="column col-done">
-      <div class="column-header">
-        <span class="column-title">🟢 已成交</span>
-        <span class="column-count" id="count-done">0</span>
+  </div>
+
+  <!-- 🃏 桥牌工作 -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon bridge">🃏</div>
+      <div>
+        <div class="section-title">桥牌工作</div>
+        <div class="section-desc">会议纪要 · 教师信息</div>
       </div>
-      <div id="col-done"></div>
-      <div class="column-empty" id="empty-done" style="display:none;padding:30px 20px;text-align:center;color:#999;font-size:13px;">
-        <div style="font-size:24px;margin-bottom:8px;">🎉</div>
-        <div>暂无已成交客户</div>
-        <div style="font-size:12px;margin-top:6px;opacity:0.7;">签单成功的客户会显示在这里</div>
-      </div>
+      <div class="section-line"></div>
     </div>
-    <div class="column col-hold">
-      <div class="column-header">
-        <span class="column-title">⚫ 暂缓</span>
-        <span class="column-count" id="count-hold">0</span>
+    <div class="card-grid">
+      <a class="tool-card bridge" href="桥牌会议记录.html">
+        <div class="card-icon">📝</div>
+        <div class="card-name">会议纪要</div>
+        <div class="card-desc">桥牌会议记录查看、搜索、管理</div>
+        <span class="card-tag tag-bridge">桥牌</span>
+      </a>
+      <a class="tool-card bridge" href="教师信息.html">
+        <div class="card-icon">👥</div>
+        <div class="card-name">教师信息</div>
+        <div class="card-desc">合作老师信息备注、联系方式管理</div>
+        <span class="card-tag tag-bridge">桥牌</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- 📌 通用工具 -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon common">📌</div>
+      <div>
+        <div class="section-title">通用工具</div>
+        <div class="section-desc">跨工作场景使用</div>
       </div>
-      <div id="col-hold"></div>
-      <div class="column-empty" id="empty-hold" style="display:none;padding:30px 20px;text-align:center;color:#999;font-size:13px;">
-        <div style="font-size:24px;margin-bottom:8px;">⏸️</div>
-        <div>暂无暂缓客户</div>
-        <div style="font-size:12px;margin-top:6px;opacity:0.7;">暂时不跟进、待时机成熟的客户</div>
+      <div class="section-line"></div>
+    </div>
+    <div class="card-grid">
+      <a class="tool-card common" href="schedule.html">
+        <div class="card-icon">🗓️</div>
+        <div class="card-name">行程管理</div>
+        <div class="card-desc">桥牌·保险·日常行程，统一规划查看</div>
+        <span class="card-tag tag-common">通用</span>
+      </a>
+      <div class="tool-card common coming">
+        <div class="coming-label">即将开放</div>
+        <div class="card-icon">📝</div>
+        <div class="card-name">备忘录</div>
+        <div class="card-desc">快速记录，随时查阅</div>
+        <span class="card-tag tag-common">通用</span>
       </div>
     </div>
   </div>
+
 </div>
 
-<!-- 弹窗 -->
-<div class="modal-overlay" id="modal" onclick="closeModal(event)">
-  <div class="modal" id="modal-content"></div>
+<div class="footer">
+  milady007 的工具箱 · 由 AI 助理维护
 </div>
 
 <script>
-const customers = [
-  {
-    id: 1,
-    name: "尤培林",
-    gender: "男",
-    birthday: "",
-    age: "",
-    phone: "15821722272",
-    wechat: "15821722272",
-    address: "上海·罗泾镇保红家园155号402",
-    source: "电话",
-    owned: ["中虹少量保险"],
-    intent: [],
-    status: "pending",
-    lastContact: "2025-11-17",
-    nextContact: "2025-11-22",
-    note: "退休客户，在中虹买过少量保险。两段婚史，各育有一子，现任妻子年龄较小，大儿子已工作，小儿子仍在念书。曾在日企工作。2026年初邀请参加线下活动被拒绝。",
-    // ========== 桥爷推测分析 ==========
-    analysis: {
-      ageEstimate: "70岁左右",
-      incomeLevel: "中上（日企退休+企业年金+积蓄）",
-      familyStatus: "二婚，现任妻子约45-50岁，小儿子念初中",
-      painPoints: ["遗产分配/两子公平", "妻子未来生活保障", "自身大病医疗", "小儿子教育金（初中到大学还有6-8年）"],
-      premiumCapacity: "年缴2-5万可接受（有积蓄，但70岁产品选择受限）"
-    },
-    recommendProducts: [
-      { name: "增额终身寿险", reason: "70岁仍可投保（部分产品），锁定传承金额，两子各一份避免纠纷", priority: "⭐⭐⭐" },
-      { name: "防癌医疗险", reason: "70岁百万医疗基本买不了，防癌险是退而求其次的选择，癌症最高发", priority: "⭐⭐⭐" },
-      { name: "老年意外险", reason: "骨折、跌倒风险极高，低保费高杠杆，必配", priority: "⭐⭐⭐" },
-      { name: "妻子年金险", reason: "自己走后妻子还有20-30年要过，提前给她锁定一笔终身现金流", priority: "⭐⭐" }
-    ],
-    talkScripts: [
-      { scene: "开场破冰", content: "尤叔叔，好久没联系了！您身体还好吗？我这边整理了一些针对您这个年龄段客户的保障方案，特别是能把财产稳妥传给两个孩子、同时给阿姨留足保障的那种。您什么时候方便，我去罗泾拜访您？" },
-      { scene: "切入传承", content: "您70岁了，两个儿子一个妈生的，以后分财产容易有矛盾。现在用保单把金额锁定，写清楚受益比例，两个孩子各拿各的，谁也没话说。" },
-      { scene: "切入妻子保障", content: "您比阿姨大不少，最担心的应该是自己走后她怎么办。现在给她买份年金，您在世时一起领，您走了她还能继续领一辈子，这是给她最大的安心。" },
-      { scene: "切入医疗", content: "70岁百万医疗基本买不了了，但防癌险还能买。癌症是老年人最高发的病，治疗费用几十万起步，这个缺口一定要补上。" }
-    ],
-    tips: "桥爷制作：70岁客户产品选择受限（重疾/百万医疗基本拒保），重点推增额寿+防癌险+意外险。核心痛点是'走后家人怎么办'，用情感牌打动。日企背景注重条款细节，准备充分再面谈。"
-  }
-];
-
-const statusMap = {
-  pending: "🔴 待跟进",
-  following: "🟡 跟进中",
-  done: "🟢 已成交",
-  hold: "⚫ 暂缓"
-};
-
-function isOverdue(dateStr) {
-  return new Date(dateStr) < new Date(new Date().toDateString());
-}
-
-function calculateAge(birthday, ageEstimate) {
-  if (birthday) {
-    const birth = new Date(birthday);
-    const today = new Date();
-    let age = today.getFullYear() - birth.getFullYear();
-    const monthDiff = today.getMonth() - birth.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-      age--;
-    }
-    return age;
-  }
-  // 如果没有生日，从ageEstimate解析基准年龄，按年份递增
-  if (ageEstimate) {
-    const match = ageEstimate.match(/(\d+)/);
-    if (match) {
-      const baseAge = parseInt(match[1]);
-      const currentYear = new Date().getFullYear();
-      // 假设分析是在2026年做的，每年自动+1
-      const yearsPassed = currentYear - 2026;
-      return baseAge + yearsPassed;
-    }
-  }
-  return '';
-}
-
-function renderCard(c) {
-  const overdue = c.nextContact && isOverdue(c.nextContact);
-  const displayAge = calculateAge(c.birthday, c.analysis?.ageEstimate) || c.age;
-  return `
-    <div class="card card-${c.status}" onclick="showModal(${c.id})" data-name="${c.name}" data-status="${c.status}">
-      <div class="card-top">
-        <span class="card-name">${c.name}</span>
-        <span class="card-age">${c.gender}${displayAge ? ' · ' + displayAge + '岁' : ''}${c.birthday ? ' · ' + c.birthday : ''}</span>
-      </div>
-      <div class="card-contact">
-        <span>📞 ${c.phone}</span>
-        <span>💬 ${c.wechat}</span>
-      </div>
-      <div class="card-policies">
-        ${c.owned.map(p => `<span class="policy-tag tag-owned">✅ ${p}</span>`).join('')}
-        ${c.intent.map(p => `<span class="policy-tag tag-intent">👀 ${p}</span>`).join('')}
-      </div>
-      <div class="card-source">来源：${c.source}</div>
-      ${c.note ? `<div class="card-note">💬 ${c.note}</div>` : ''}
-      <div class="card-footer">
-        <span class="card-date">上次联系：${c.lastContact}</span>
-        ${c.nextContact ? `<span class="next-date ${overdue ? 'overdue' : ''}">⏰ ${overdue ? '逾期! ' : ''}${c.nextContact}</span>` : ''}
-      </div>
-    </div>
-  `;
-}
-
-function renderAll(list) {
-  ['pending','following','done','hold'].forEach(s => {
-    document.getElementById(`col-${s}`).innerHTML = '';
-    document.getElementById(`count-${s}`).textContent = 0;
-    const emptyEl = document.getElementById(`empty-${s}`);
-    if (emptyEl) emptyEl.style.display = 'block';
-  });
-  list.forEach(c => {
-    const col = document.getElementById(`col-${c.status}`);
-    if (col) {
-      col.innerHTML += renderCard(c);
-      const cnt = document.getElementById(`count-${c.status}`);
-      cnt.textContent = parseInt(cnt.textContent) + 1;
-      const emptyEl = document.getElementById(`empty-${c.status}`);
-      if (emptyEl) emptyEl.style.display = 'none';
-    }
-  });
-  document.getElementById('total-count').textContent = customers.length;
-  document.getElementById('intent-count').textContent = customers.filter(c => c.status === 'pending' || c.status === 'following').length;
-  document.getElementById('done-count').textContent = customers.filter(c => c.status === 'done').length;
-}
-
-function filterCards(status, btn) {
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  const list = status === 'all' ? customers : customers.filter(c => c.status === status);
-  renderAll(list);
-}
-
-function searchCards(keyword) {
-  const kw = keyword.trim().toLowerCase();
-  const list = kw ? customers.filter(c => c.name.includes(keyword)) : customers;
-  renderAll(list);
-}
-
-function showModal(id) {
-  const c = customers.find(x => x.id === id);
-  const overdue = c.nextContact && isOverdue(c.nextContact);
-  const displayAge = calculateAge(c.birthday, c.analysis?.ageEstimate) || c.age;
-  document.getElementById('modal-content').innerHTML = `
-    <div class="modal-header">
-      <span class="modal-title">👤 ${c.name} 详情</span>
-      <span class="modal-close" onclick="closeModal()">×</span>
-    </div>
-    <div class="modal-grid">
-      <div><div class="modal-label">姓名</div><div class="modal-value">${c.name}</div></div>
-      <div><div class="modal-label">性别 / 年龄</div><div class="modal-value">${c.gender}${displayAge ? ' · ' + displayAge + '岁' : ''}</div></div>
-      <div><div class="modal-label">出生年月日</div><div class="modal-value">${c.birthday || '未填写'}</div></div>
-      <div><div class="modal-label">手机号</div><div class="modal-value">${c.phone}</div></div>
-      <div><div class="modal-label">微信</div><div class="modal-value">${c.wechat}</div></div>
-      <div><div class="modal-label">客户来源</div><div class="modal-value">${c.source}</div></div>
-      <div><div class="modal-label">当前状态</div><div class="modal-value">${statusMap[c.status]}</div></div>
-    </div>
-    ${c.address ? `<div class="modal-section"><div class="modal-label">家庭住址</div><div class="modal-value">${c.address}</div></div>` : ''}
-    <div class="modal-section">
-      <div class="modal-label">已购险种</div>
-      <div style="margin-top:6px">${c.owned.length ? c.owned.map(p=>`<span class="policy-tag tag-owned">✅ ${p}</span>`).join(' ') : '<span style="color:#aaa;font-size:13px">暂无</span>'}</div>
-    </div>
-    <div class="modal-section">
-      <div class="modal-label">意向险种</div>
-      <div style="margin-top:6px">${c.intent.length ? c.intent.map(p=>`<span class="policy-tag tag-intent">👀 ${p}</span>`).join(' ') : '<span style="color:#aaa;font-size:13px">暂无</span>'}</div>
-    </div>
-    <div class="modal-grid">
-      <div><div class="modal-label">上次联系</div><div class="modal-value">${c.lastContact}</div></div>
-      <div><div class="modal-label">下次跟进</div><div class="modal-value ${overdue ? 'overdue' : 'next-date'}">${c.nextContact || '未设置'}${overdue ? ' ⚠️ 已逾期' : ''}</div></div>
-    </div>
-    ${c.note ? `<div class="modal-section"><div class="modal-label">备注</div><div class="card-note" style="margin-top:6px">💬 ${c.note}</div></div>` : ''}
-    
-    ${c.analysis ? `
-    <div class="modal-section" style="background:#f0f7ff;padding:12px;border-radius:8px;margin-top:16px;">
-      <div class="modal-label" style="color:#1a73e8;font-weight:600;">📊 桥爷推测分析</div>
-      <div style="margin-top:8px;font-size:13px;line-height:1.8;">
-        <div><b>年龄推测：</b>${c.analysis.ageEstimate || '未推测'}</div>
-        <div><b>收入层级：</b>${c.analysis.incomeLevel || '未推测'}</div>
-        <div><b>家庭状况：</b>${c.analysis.familyStatus || '未推测'}</div>
-        <div><b>核心痛点：</b>${c.analysis.painPoints ? c.analysis.painPoints.join('、') : '未分析'}</div>
-        <div><b>保费承受：</b>${c.analysis.premiumCapacity || '未评估'}</div>
-      </div>
-    </div>` : ''}
-    
-    ${c.recommendProducts && c.recommendProducts.length ? `
-    <div class="modal-section" style="margin-top:16px;">
-      <div class="modal-label">🎯 推荐产品</div>
-      <div style="margin-top:8px;">
-        ${c.recommendProducts.map(p => `
-          <div style="padding:8px 12px;background:#f8f9fc;border-radius:6px;margin-bottom:6px;font-size:13px;">
-            <span style="color:#ffa500;">${p.priority || '⭐'}</span> <b>${p.name}</b>
-            <div style="color:#666;margin-top:2px;font-size:12px;">${p.reason}</div>
-          </div>
-        `).join('')}
-      </div>
-    </div>` : ''}
-    
-    ${c.talkScripts && c.talkScripts.length ? `
-    <div class="modal-section" style="margin-top:16px;">
-      <div class="modal-label">💬 话术脚本</div>
-      <div style="margin-top:8px;">
-        ${c.talkScripts.map(s => `
-          <div style="padding:10px 12px;background:#fff8e1;border-radius:6px;margin-bottom:8px;font-size:13px;">
-            <div style="color:#f57c00;font-weight:600;font-size:12px;margin-bottom:4px;">【${s.scene}】</div>
-            <div style="color:#333;line-height:1.6;">${s.content}</div>
-          </div>
-        `).join('')}
-      </div>
-    </div>` : ''}
-    
-    ${c.tips ? `
-    <div class="modal-section" style="margin-top:16px;padding:10px 12px;background:#e8f5e9;border-radius:6px;border-left:3px solid #4caf50;">
-      <div style="font-size:12px;color:#2e7d32;line-height:1.6;">💡 ${c.tips}</div>
-    </div>` : ''}
-  `;
-  document.getElementById('modal').classList.add('show');
-}
-
-function closeModal(e) {
-  if (!e || e.target === document.getElementById('modal')) {
-    document.getElementById('modal').classList.remove('show');
-  }
-}
-
-renderAll(customers);
+  const now = new Date();
+  const days = ['日','一','二','三','四','五','六'];
+  document.getElementById('date-label').textContent =
+    `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日 周${days[now.getDay()]}`;
 </script>
 </body>
 </html>
