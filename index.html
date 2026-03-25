@@ -71,6 +71,7 @@
   .tool-card.bridge:hover { border-color: #e65100; }
   .tool-card.insurance:hover { border-color: #1565c0; }
   .tool-card.common:hover { border-color: #2e7d32; }
+  .tool-card.education:hover { border-color: #e91e63; }
 
   /* 卡片顶部色条 */
   .tool-card::before {
@@ -79,6 +80,7 @@
   .tool-card.bridge::before { background: linear-gradient(90deg, #e65100, #ff8a50); }
   .tool-card.insurance::before { background: linear-gradient(90deg, #1565c0, #42a5f5); }
   .tool-card.common::before { background: linear-gradient(90deg, #2e7d32, #66bb6a); }
+  .tool-card.education::before { background: linear-gradient(90deg, #c2185b, #f06292); }
 
   .card-icon { font-size: 28px; }
   .card-name { font-size: 15px; font-weight: 700; color: #222; }
@@ -137,7 +139,7 @@
       <div class="section-line"></div>
     </div>
     <div class="card-grid">
-      <a class="tool-card insurance" href="index_clients.html">
+      <a class="tool-card insurance" href="clients.html">
         <div class="card-icon">👥</div>
         <div class="card-name">客户看板</div>
         <div class="card-desc">客户信息管理、跟进状态、逾期提醒</div>
@@ -169,11 +171,37 @@
         <div class="card-desc">桥牌会议记录查看、搜索、管理</div>
         <span class="card-tag tag-bridge">桥牌</span>
       </a>
-      <a class="tool-card bridge" href="教师信息.html">
+      <a class="tool-card bridge" href="桥牌教师信息.html">
         <div class="card-icon">👥</div>
         <div class="card-name">教师信息</div>
-        <div class="card-desc">合作老师信息备注、联系方式管理</div>
+        <div class="card-desc">桥牌合作老师信息备注、联系方式管理</div>
         <span class="card-tag tag-bridge">桥牌</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- 📚 教培工作 -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background: #fce4ec;">📚</div>
+      <div>
+        <div class="section-title">教培工作</div>
+        <div class="section-desc">会议纪要 · 教师管理</div>
+      </div>
+      <div class="section-line"></div>
+    </div>
+    <div class="card-grid">
+      <a class="tool-card education" href="教培合作洽谈会议大纲_2026-03-26.md">
+        <div class="card-icon">📝</div>
+        <div class="card-name">会议纪要</div>
+        <div class="card-desc">教培合作洽谈会议记录、方案规划</div>
+        <span class="card-tag" style="background: #fce4ec; color: #c2185b;">教培</span>
+      </a>
+      <a class="tool-card education" href="教培教师信息.html">
+        <div class="card-icon">👨‍🏫</div>
+        <div class="card-name">教师信息</div>
+        <div class="card-desc">教培合作老师信息备注、联系方式管理</div>
+        <span class="card-tag" style="background: #fce4ec; color: #c2185b;">教培</span>
       </a>
     </div>
   </div>
